@@ -1,0 +1,22 @@
+{
+  "name": "mapa-hidden",
+  "version": "1.0.0",
+  "description": "Initial commit for repository that holds the hidden game, implemented with phaserJs and whatever is added to the list!",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jocelo/mapa-hidden.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jocelo/mapa-hidden/issues"
+  },
+  "homepage": "https://github.com/jocelo/mapa-hidden#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
+}
