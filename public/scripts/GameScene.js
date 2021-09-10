@@ -7,10 +7,14 @@ class GameScene extends Phaser.Scene {
         this.right_player_bg;
         this.the_backgrounds;
         this.text_groups;
+        this.cooldown = false;
+        this.cooldownText;
+        this.cooldownBg;
     }
 
     preload() {
         this.load.image('background', 'assets/bg/kawaii.png');
+        this.load.image('wrong', 'assets/red-cross-icon-png.png');
         this.load.image('cursor', 'assets/cursor.png');
         for (var one in hidden_objects) {
             this.load.image(hidden_objects[one].id, `assets/${hidden_objects[one].id}.png`);
@@ -20,9 +24,13 @@ class GameScene extends Phaser.Scene {
 
     create() {
         this.graphics = this.add.graphics({ lineStyle: { width: 10, color: 0xff0000 } });
+        wrongChoices = this.add.group();
+        this.input.setDefaultCursor('pointer');
 
         var self = this;
-        this.add.image(500, 400, 'background');
+        var bg_image = this.add.image(500, 400, 'background');
+        bg_image.setInteractive();
+        bg_image.on('clicked', this.bg_click_listener, this);
 
         this.cursors = this.input.keyboard.createCursorKeys();
 
@@ -42,8 +50,6 @@ class GameScene extends Phaser.Scene {
         this.input.on('gameobjectup', function (pointer, gameObject) {
             gameObject.emit('clicked', gameObject);
         }, this);
-
-        addPlayer(self);
 
         // Words background
         this.bg_items = this.add.rectangle(1300, 400, 200, 800, 0x000000, 0.8);
@@ -72,30 +78,16 @@ class GameScene extends Phaser.Scene {
             //the_text.setFill('#FF0000');
         }
 
+        this.cooldownBg = this.add.rectangle(GAME_WIDTH / 2, WIN_HEIGHT / 2, GAME_WIDTH, WIN_HEIGHT, 0x000000, 0.8);
+        this.cooldownText = this.add.text(GAME_WIDTH / 3, WIN_HEIGHT / 2, 'You are clicking too fast, please wait', { fontSize: '40px', fill: '#FF0000' });
     };
 
     update() {
         var self = this;
-        if (this.player) {
-            if (this.cursors.left.isDown) {
-                this.player.x -= 5;
-            }
-            if (this.cursors.right.isDown) {
-                this.player.x += 5;
-            }
-            if (this.cursors.up.isDown) {
-                this.player.y -= 5;
-            }
-            if (this.cursors.down.isDown) {
-                this.player.y += 5;
-            }
-
-            this.physics.world.wrap(this.player, 5);
-        }
-
+        /*
         var the_graphics = this.add.graphics({ lineStyle: { width: 4, color: 0xff0000, alpha: 0.7 } });
         var line = new Phaser.Geom.Line(1210, 45, 1390, 45);
-
+        */
         /*
         for (var i in hidden_objects) {
             if (hidden_objects[i].found) {
@@ -107,6 +99,14 @@ class GameScene extends Phaser.Scene {
         */
         // console.log(`[${game.input.mousePointer.x},${game.input.mousePointer.y}]`);
         toggleVisibilityBackgrounds(self);
+
+        if (this.cooldown) {
+            this.cooldownText.setVisible(true);
+            this.cooldownBg.setVisible(true);
+        } else {
+            this.cooldownText.setVisible(false);
+            this.cooldownBg.setVisible(false);
+        }
     };
 
     reset_scope() {
@@ -117,14 +117,14 @@ class GameScene extends Phaser.Scene {
         };
     }
 
-    show_object_found(position, text, color) {
+    show_object_found(pointerCoord, text, color) {
         console.log(arguments);
-        var text = this.add.text(position.x, position.y, text, { fontSize: '40px', fill: color });
+        var text = this.add.text(pointerCoord.x, pointerCoord.y, text, { fontSize: '40px', fill: color });
         text.setShadow(5, 5, 'rgba(0,0,0,1)', 0);
 
         this.tweens.add({
             targets: text,
-            y: position.y - 100,
+            y: pointerCoord.y - 100,
             duration: 750
         });
 
@@ -135,12 +135,65 @@ class GameScene extends Phaser.Scene {
             duration: 100
         });
     }
+
+    bg_click_listener() {
+        if (wrongChoices.getLength() >= 3) {
+            this.input.setDefaultCursor('not-allowed');
+            this.cooldown = true;
+            this.showCooldown();
+            return;
+        }
+        var mynewcross = this.add.image(game.input.mousePointer.x, game.input.mousePointer.y, 'wrong');
+        wrongChoices.add(mynewcross);
+
+        console.log('how many do we have?', wrongChoices.getLength());
+        console.log(wrongChoices.getChildren());
+        console.log(wrongChoices.getFirst(true));
+
+        this.time.addEvent({
+            delay: 3000, callback: function () {
+                // box.setVisible(false);
+
+                this.tweens.add({
+                    targets: mynewcross,
+                    alpha: 0,
+                    duration: 200
+                });
+
+                wrongChoices.remove(wrongChoices.getFirst(true), true);
+
+                //wrongChoices.remove(getThenOne);
+                console.log('is it removed?');
+                console.log('+', wrongChoices.getLength());
+
+                // wrongChoices.remove(wrongChoices.getFirst());
+
+                // wrongChoices.getLength()
+                //mynewcross.setVisible(false);
+
+                if (wrongChoices.getLength() < 3) {
+                    this.input.setDefaultCursor('pointer');
+                    this.cooldown = false;
+                }
+            }, callbackScope: this
+        });
+
+        //box.off('clicked', this.clickHandler);
+        //box.input.enabled = false;
+        //box.setVisible(false);
+    }
+
+    showCooldown() {
+        // var text = this.add.text(GAME_WIDTH / 2, WIN_HEIGHT / 2, 'You are clicking too fast, please wait', { fontSize: '40px', fill: '#FF0000' });
+        // text.setShadow(5, 5, 'rgba(0,0,0,1)', 0);
+    }
 }
 
 var the_objects,
     line,
     graphics,
     objects = [],
+    wrongChoices,
     scores = {
         'blue': 0,
         'red': 0
@@ -193,39 +246,27 @@ var the_objects,
         }
     };
 
-hidden_objects = {
-    'robot': {
-        id: 'robot',
-        name: 'Robot',
-        found: false
-    }, 'bow': {
-        id: 'bow',
-        name: 'Bow',
-        found: false
-    }
-}
-
 var total_objects = Object.keys(hidden_objects).length,
     total_found = 0;
 
-function addPlayer(self) {
-    self.player = self.physics.add.image(50, 50, 'cursor')
-        .setOrigin(0.5, 0.5)
-        .setDisplaySize(50, 50);
-}
-
 function clickHandler(the_image, self) {
+    if (this.cooldown) {
+        this.showCooldown();
+        return;
+    }
+
     the_image.off('clicked', this.clickHandler);
     the_image.input.enabled = false;
+
+    console.log('the_image.name???', the_image.name);
 
     if (the_image.name in hidden_objects) {
         hidden_objects[the_image.name].found = true;
         scores.blue += 1;
         total_found += 1;
         this.blueScoreText.setText(`${scores.blue} found`);
-        console.log(game.input.mousePointer.x, game.input.mousePointer.x);
+        // console.log(game.input.mousePointer.x, game.input.mousePointer.x);
         this.show_object_found({ x: game.input.mousePointer.x - 40, y: game.input.mousePointer.y - 20 }, '+1', FIRST_PLAYER.color);
-
     }
 
     this.tweens.add({
