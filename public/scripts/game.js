@@ -9,11 +9,6 @@ const SECOND_PLAYER = {
 };
 
 const url = window.location.origin;
-let socket = io.connect(url, {
-  query: {
-    'player': 'requesting'
-  }
-});
 
 var config = {
   type: Phaser.AUTO,

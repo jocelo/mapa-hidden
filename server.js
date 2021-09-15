@@ -6,7 +6,7 @@ const socketIO = require('socket.io');
 const fs = require('fs');
 const PORT = process.env.PORT || '8080';
 
-const server = http.Server(app).listen(PORT);
+const server = http.Server(app).listen(PORT, '0.0.0.0');
 const io = socketIO(server, { origins: '*:*' });
 const clients = {};
 

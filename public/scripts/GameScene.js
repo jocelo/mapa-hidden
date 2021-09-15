@@ -16,6 +16,7 @@ class GameScene extends Phaser.Scene {
         this.wrongEvents = [];
         this.total_objects = Object.keys(hidden_objects).length;
         this.total_found = 0;
+        this.socket;
     }
 
     preload() {
@@ -29,6 +30,8 @@ class GameScene extends Phaser.Scene {
     };
 
     create() {
+        this.socket = io.connect(url, { query: { 'player': 'requesting' } });
+
         this.graphics = this.add.graphics({ lineStyle: { width: 10, color: 0xff0000 } });
         wrongChoices = this.add.group();
         this.wrongEvents = [];
@@ -90,7 +93,7 @@ class GameScene extends Phaser.Scene {
         this.renderOponent('waiting');
         this.renderGameId('...loading');
 
-        socket.on("game.begin", function (data) {
+        this.socket.on("game.begin", function (data) {
             console.log('what game am I in and what player am I?');
             console.log(data);
             self.gameId = data.gameId;
@@ -100,7 +103,7 @@ class GameScene extends Phaser.Scene {
             self.renderOponent('0 found');
         });
 
-        socket.on('remove.item', function (data) {
+        this.socket.on('remove.item', function (data) {
             console.log('need to remove this item from the list:', data.item);
             console.log('and add a point to my oponent');
             self.oponentHitHandler(data.item);
@@ -264,7 +267,7 @@ class GameScene extends Phaser.Scene {
             } else {
                 theWinner = 'self';
             }
-
+            this.socket.disconnect();
             this.scene.start('donePage', { winner: theWinner });
         }
     }
@@ -341,8 +344,8 @@ function clickHandler(the_image, self) {
         this.total_found += 1;
         this.blueScoreText.setText(`${scores.blue} found`);
         this.show_object_found({ x: game.input.mousePointer.x - 40, y: game.input.mousePointer.y - 20 }, '+1', FIRST_PLAYER.color);
-        socket.emit('select.item', {
-            gameId: socket.id,
+        this.socket.emit('select.item', {
+            gameId: this.socket.id,
             player: this.playerTag,
             item: the_image.name
         });
