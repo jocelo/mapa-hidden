@@ -5,12 +5,17 @@ class GameScene extends Phaser.Scene {
         this.bg_items = '';
         this.left_player_bg;
         this.right_player_bg;
+        this.gameId = '...loading';
+        this.playerTag = '';
+        this.gameIdLabel = '';
         this.the_backgrounds;
         this.text_groups;
         this.cooldown = false;
         this.cooldownText;
         this.cooldownBg;
         this.wrongEvents = [];
+        this.total_objects = Object.keys(hidden_objects).length;
+        this.total_found = 0;
     }
 
     preload() {
@@ -57,12 +62,15 @@ class GameScene extends Phaser.Scene {
         // background players
         this.left_player_bg = this.add.rectangle(100, 35, 200, 50, 0x000000, 0.9);
         this.right_player_bg = this.add.rectangle(1100, 35, 200, 50, 0x000000, 0.9);
+        // this.left_player_bg = this.add.rectangle(GAME_WIDTH / 2, 35, 200, 50, 0x000000, 0.9);
 
         this.blueScoreText = this.add.text(16, 18, '0 found', { fontSize: '32px', fill: FIRST_PLAYER.color });
         this.blueScoreText.setShadow(3, 3, 'rgba(255,255,255,0.3)', 0);
 
         this.redScoreText = this.add.text(1025, 18, '0 found', { fontSize: '32px', fill: SECOND_PLAYER.color });
         this.redScoreText.setShadow(3, 3, 'rgba(255,255,255,0.3)', 0);
+
+        // this.gameIdLabel.setShadow(3, 3, 'rgba(255,255,255,0.3)', 0);
 
         var line = 0;
         this.text_groups = this.physics.add.staticGroup();
@@ -74,8 +82,29 @@ class GameScene extends Phaser.Scene {
             //the_text.setFill('#FF0000');
         }
 
+        this.gameIdLabel = this.add.text(WIN_WIDTH - 100, 10, this.gameId, { fontSize: '10px', fill: '#bbbbbb' });
+
         this.cooldownBg = this.add.rectangle(GAME_WIDTH / 2, WIN_HEIGHT / 2, GAME_WIDTH, WIN_HEIGHT, 0x000000, 0.8);
         this.cooldownText = this.add.text(GAME_WIDTH / 3, WIN_HEIGHT / 2, 'You are clicking too fast, please wait', { fontSize: '40px', fill: '#FF0000' });
+
+        this.renderOponent('waiting');
+        this.renderGameId('...loading');
+
+        socket.on("game.begin", function (data) {
+            console.log('what game am I in and what player am I?');
+            console.log(data);
+            self.gameId = data.gameId;
+            self.playerTag = data.player;
+
+            self.renderGameId(data.gameId);
+            self.renderOponent('0 found');
+        });
+
+        socket.on('remove.item', function (data) {
+            console.log('need to remove this item from the list:', data.item);
+            console.log('and add a point to my oponent');
+            self.oponentHitHandler(data.item);
+        })
     };
 
     update() {
@@ -117,18 +146,33 @@ class GameScene extends Phaser.Scene {
             this.cooldownText.setVisible(true).setDepth(1);
             this.cooldownBg.setVisible(true).setDepth(1);
             this.input.setDefaultCursor('not-allowed');
-        } else {
+            // TODO: do something like below here
+        } else { // wait until no more cursors are visible... which might be up to 3 sec, meaning the last one that was activated
+            // pretty sure this will help with the stuttering
             this.cooldownText.setVisible(false);
             this.cooldownBg.setVisible(false);
-            this.input.setDefaultCursor('cursor');
+            this.input.setDefaultCursor('pointer');
         }
 
         this.cooldown = howManyAreActive > 3;
         //console.log('this cooldown', this.cooldown);
     };
 
+    renderOponent(label) {
+        this.redScoreText.setText(label);
+        if (label == 'waiting') {
+            this.redScoreText.setFill('#666666');
+        } else {
+            this.redScoreText.setFill(SECOND_PLAYER.color);
+        }
+    }
+
+    renderGameId(gameId) {
+        this.gameIdLabel.setText(gameId);
+    }
+
     reset_scope() {
-        total_found = 0;
+        this.total_found = 0;
         scores = {
             'blue': 0,
             'red': 0
@@ -179,6 +223,50 @@ class GameScene extends Phaser.Scene {
         });
 
         this.wrongEvents.push(evt);
+    }
+
+    oponentHitHandler(imageName) {
+        hidden_objects[imageName].found = true;
+        scores.red += 1;
+        this.total_found += 1;
+
+        var theObject = this.children.getByName(imageName);
+        this.redScoreText.setText(`${scores.red} found`);
+        this.show_object_found({ x: theObject.x, y: theObject.y }, '+1', SECOND_PLAYER.color);
+
+        this.tweens.add({
+            targets: theObject,
+            alpha: 0,
+            duration: 400,
+            ease: 'Sinusoidal'
+        }, this);
+
+        var textFound = this.text_groups.getMatching('name', imageName);
+        if (textFound.length == 1) {
+            textFound[0].setAlpha(0.7);
+            textFound[0].setFill(SECOND_PLAYER.color);
+        }
+
+        this.checkWiner(this);
+
+    }
+
+    checkWiner(self) {
+        if (this.total_objects == this.total_found) {
+            console.log(`blue ${this.redScoreText} vs red ${this.blueScoreText}`);
+            var theWinner = '';
+            console.log(`${scores.blue} vs ${scores.red}`);
+
+            if (scores.red == scores.blue) {
+                theWinner = 'tie';
+            } else if (scores.red > scores.blue) {
+                theWinner = 'oponent';
+            } else {
+                theWinner = 'self';
+            }
+
+            this.scene.start('donePage', { winner: theWinner });
+        }
     }
 }
 
@@ -239,9 +327,6 @@ var the_objects,
         }
     };
 
-var total_objects = Object.keys(hidden_objects).length,
-    total_found = 0;
-
 function clickHandler(the_image, self) {
     if (this.cooldown) {
         return;
@@ -253,9 +338,14 @@ function clickHandler(the_image, self) {
     if (the_image.name in hidden_objects) {
         hidden_objects[the_image.name].found = true;
         scores.blue += 1;
-        total_found += 1;
+        this.total_found += 1;
         this.blueScoreText.setText(`${scores.blue} found`);
         this.show_object_found({ x: game.input.mousePointer.x - 40, y: game.input.mousePointer.y - 20 }, '+1', FIRST_PLAYER.color);
+        socket.emit('select.item', {
+            gameId: socket.id,
+            player: this.playerTag,
+            item: the_image.name
+        });
     }
 
     this.tweens.add({
@@ -271,15 +361,7 @@ function clickHandler(the_image, self) {
         textFound[0].setFill(FIRST_PLAYER.color);
     }
 
-    checkWiner(this);
-}
-
-
-function checkWiner(self) {
-    console.log(`${total_objects} - ${total_found}`);
-    if (total_objects == total_found) {
-        self.scene.start('donePage', { winner: "self" });
-    }
+    this.checkWiner(this);
 }
 
 function updateScore(self) {

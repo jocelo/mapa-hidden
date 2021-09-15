@@ -8,10 +8,16 @@ class GameOverScene extends Phaser.Scene {
     }
 
     create() {
-        var congratulate_msg = 'Your oponent won!';
+        var congratulate_msg = 'something unexpected happened';
 
-        if (this.winner == 'self') {
-            congratulate_msg = 'Your won!';
+        var winningMessages = {
+            'self': 'You won!',
+            'tie': 'It\'s a tie!',
+            'oponent': 'Your oponent won!'
+        };
+
+        if (this.winner in winningMessages) {
+            congratulate_msg = winningMessages[this.winner];
         }
 
         this.add.text(WIN_WIDTH / 2, WIN_HEIGHT * .3, congratulate_msg);
