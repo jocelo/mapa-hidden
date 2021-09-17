@@ -57,11 +57,13 @@ io.on('connection', function (socket) {
         console.log('item selected!!!');
         console.log(data);
 
-        opponentOf(socket).emit('remove.item', {
-            gameId: socket.id,
-            player: games[socket.id].character,
-            item: data.item
-        });
+        if (opponentOf(socket)) {
+            opponentOf(socket).emit('remove.item', {
+                gameId: socket.id,
+                player: games[socket.id].character,
+                item: data.item
+            });
+        }
     })
 
     join(socket, player);

@@ -330,6 +330,14 @@ var the_objects,
         }
     };
 
+hidden_objects = {
+    'robot': {
+        id: 'robot',
+        name: 'Robot',
+        found: false
+    }
+};
+
 function clickHandler(the_image, self) {
     if (this.cooldown) {
         return;
