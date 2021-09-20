@@ -45,6 +45,13 @@ io.on('connection', function (socket) {
     socket.on('disconnect', () => {
         console.log(`Client disconnected with ID: ${socket.id}`);
         delete clients[socket.id];
+
+        var idxOfId = a_games.indexOf(socket.id);
+        if (idxOfId != -1) {
+            var zGame = a_games.splice(idxOfId, 1);
+            console.log(` !!! ${zGame} removed from list of games`);
+        }
+
         socket.broadcast.emit('client.disconnect', socket.id);
     });
 

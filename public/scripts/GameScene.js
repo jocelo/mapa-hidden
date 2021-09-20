@@ -30,6 +30,8 @@ class GameScene extends Phaser.Scene {
     };
 
     create() {
+        this.cameras.main.fadeIn(200, 0, 0, 0);
+
         this.socket = io.connect(url, { query: { 'player': 'requesting' } });
 
         this.graphics = this.add.graphics({ lineStyle: { width: 10, color: 0xff0000 } });
@@ -208,10 +210,6 @@ class GameScene extends Phaser.Scene {
         var mynewcross = this.add.image(game.input.mousePointer.x, game.input.mousePointer.y, 'wrong');
         wrongChoices.add(mynewcross);
 
-        console.log('how many do we have?', wrongChoices.getLength());
-        console.log(wrongChoices.getChildren());
-        console.log(wrongChoices.getFirst(true));
-
         var evt = this.time.addEvent({
             delay: 3000, callback: function (self) {
                 // box.setVisible(false);
@@ -256,9 +254,7 @@ class GameScene extends Phaser.Scene {
 
     checkWiner(self) {
         if (this.total_objects == this.total_found) {
-            console.log(`blue ${this.redScoreText} vs red ${this.blueScoreText}`);
             var theWinner = '';
-            console.log(`${scores.blue} vs ${scores.red}`);
 
             if (scores.red == scores.blue) {
                 theWinner = 'tie';
@@ -268,7 +264,11 @@ class GameScene extends Phaser.Scene {
                 theWinner = 'self';
             }
             this.socket.disconnect();
-            this.scene.start('donePage', { winner: theWinner });
+            this.cameras.main.fadeOut(700, 0, 0, 0);
+
+            this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, (cam, effect) => {
+                this.scene.start('donePage', { winner: theWinner });
+            })
         }
     }
 }

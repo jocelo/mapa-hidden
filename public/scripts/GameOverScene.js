@@ -19,12 +19,16 @@ class GameOverScene extends Phaser.Scene {
         this.load.image('backgroundd', 'assets/bg_win_blue.png');
         this.load.image('button', 'assets/button_blue.png');
         this.load.image('panel', 'assets/panel_blue.png');
+        this.load.image('raybg', 'assets/ray_bg.png');
         this.load.script('webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js');
     }
 
     create() {
+        this.cameras.main.fadeIn(300, 0, 0, 0);
+
         var add = this.add;
         var input = this.input;
+
         var bg_pos = {
             x: WIN_WIDTH / 2,
             y: (WIN_HEIGHT / 2) - 50
@@ -35,11 +39,25 @@ class GameOverScene extends Phaser.Scene {
         var winningMessages = {
             'self': 'You won!',
             'tie': 'It\'s a tie!',
-            'oponent': 'Your oponent won!'
+            'oponent': 'You loose'
         };
 
         if (this.winner in winningMessages) {
             congratulate_msg = winningMessages[this.winner];
+        }
+
+        input.on('gameobjectup', function (pointer, gameObject) {
+            gameObject.emit('clicked', gameObject);
+        }, this);
+
+        var graphics = this.add.graphics();
+        graphics.fillGradientStyle(0x666666, 0x666666, 0x202020, 0x202020, 1);
+        graphics.fillRect(0, 0, WIN_WIDTH, WIN_HEIGHT);
+
+        if (this.winner == 'self') {
+            this.ray_bg = this.add.image(WIN_WIDTH / 2, WIN_HEIGHT / 2, 'raybg')
+                .setScale(1.5)
+                .setAlpha(0.7);
         }
 
         this.add.text(WIN_WIDTH / 2, WIN_HEIGHT * .3, congratulate_msg);
@@ -50,27 +68,54 @@ class GameOverScene extends Phaser.Scene {
         var bg = this.add.image(bg_pos.x, bg_pos.y, 'backgroundd');
         bg.setScale(0.5);
 
-        var btn_again = this.add.image(bg_pos.x, bg_pos.y, 'button')
-            .setScale(0.4);
-        btn_again.setInteractive();
-        btn_again.on('clicked', function () { console.log('caca'); }, this);
+        // play again button
+        this.add.image(bg_pos.x, bg_pos.y, 'button')
+            .setScale(0.4)
+            .setInteractive()
+            .on('clicked', function () {
+                this.playAgain();
+            }, this)
+            .on('pointerover', function (event) {
+                this.setTint(0x2ba1b6);
+            })
+            .on('pointerout', function (event) {
+                this.clearTint();
+            });
 
+        // choose another scene button
         add.image(bg_pos.x, bg_pos.y + 90, 'button')
             .setScale(0.4)
             .setInteractive()
-            .on('clicked', function () { console.log('caca'); }, this);
+            .on('clicked', function () {
 
-        var btn_exit = this.add.image(bg_pos.x, bg_pos.y + 180, 'button')
-            .setScale(0.4);
-        btn_exit.setInteractive();
-        btn_exit.on('clicked', function () { console.log('caca'); }, this);
+            }, this)
+            .on('pointerover', function (event) {
+                this.setTint(0x2ba1b6);
+            })
+            .on('pointerout', function (event) {
+                this.clearTint();
+            });
+
+        // close everything button
+        this.add.image(bg_pos.x, bg_pos.y + 180, 'button')
+            .setScale(0.4)
+            .setInteractive()
+            .on('clicked', function () {
+                this.closeGame();
+            }, this)
+            .on('pointerover', function (event) {
+                this.setTint(0x2ba1b6);
+            })
+            .on('pointerout', function (event) {
+                this.clearTint();
+            });
 
         WebFont.load({
             custom: {
                 families: ['LuckiestGuy', 'HammersmithOne']
             },
             active: function () {
-                add.text(bg_pos.x, bg_pos.y - 160, 'GANASTE !', { fontFamily: 'LuckiestGuy', fontSize: 70, color: '#ff0000' })
+                add.text(bg_pos.x, bg_pos.y - 160, congratulate_msg, { fontFamily: 'LuckiestGuy', fontSize: 70, color: '#ff0000' })
                     .setShadow(2, 2, "#333333", 2, false, true)
                     .setStroke('#ffffff', 16)
                     .setOrigin(0.5);
@@ -88,23 +133,25 @@ class GameOverScene extends Phaser.Scene {
                     .setOrigin(0.5);
             }
         });
-
-        /*
-        this.input.on('pointerup', function () {
-            // this.scene.start('');
-            var mainScene = this.scene.get('gamingPage');
-            mainScene.reset_scope();
-
-            this.scene.transition({ target: 'gamingPage', duration: 500 });
-        }, this);
-        */
-
     }
 
-    play_again() {
-        console.log('playing again!!!');
-        //var mainScene = this.scene.get('gamingPage');
-        //mainScene.reset_scope();
-        //this.scene.transition({ target: 'gamingPage', duration: 500 });
+    update() {
+        if (this.winner == 'self') {
+            this.ray_bg.rotation += 0.005;
+        }
+    }
+
+    playAgain() {
+        this.cameras.main.fadeOut(700, 0, 0, 0);
+
+        this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, (cam, effect) => {
+            var mainScene = this.scene.get('gamingPage');
+            mainScene.reset_scope();
+            this.scene.transition({ target: 'gamingPage', duration: 300 });
+        });
+    }
+
+    closeGame() {
+        window.location.href = "https://matematicasconpaula.com/";
     }
 }
