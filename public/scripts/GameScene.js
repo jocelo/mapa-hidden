@@ -114,20 +114,6 @@ class GameScene extends Phaser.Scene {
 
     update() {
         var self = this;
-        /*
-        var the_graphics = this.add.graphics({ lineStyle: { width: 4, color: 0xff0000, alpha: 0.7 } });
-        var line = new Phaser.Geom.Line(1210, 45, 1390, 45);
-        */
-        /*
-        for (var i in hidden_objects) {
-            if (hidden_objects[i].found) {
-                the_graphics.strokeLineShape(line);
-            }
-            line.y1 += 50;
-            line.y2 += 50;
-        }
-        */
-        // console.log(`[${game.input.mousePointer.x},${game.input.mousePointer.y}]`);
         toggleVisibilityBackgrounds(self);
 
         if (this.cooldown) {
@@ -151,16 +137,16 @@ class GameScene extends Phaser.Scene {
             this.cooldownText.setVisible(true).setDepth(1);
             this.cooldownBg.setVisible(true).setDepth(1);
             this.input.setDefaultCursor('not-allowed');
+            this.cooldown = true;
             // TODO: do something like below here
         } else { // wait until no more cursors are visible... which might be up to 3 sec, meaning the last one that was activated
             // pretty sure this will help with the stuttering
-            this.cooldownText.setVisible(false);
-            this.cooldownBg.setVisible(false);
-            this.input.setDefaultCursor('pointer');
         }
 
-        this.cooldown = howManyAreActive > 3;
-        //console.log('this cooldown', this.cooldown);
+        if (this.cooldown && howManyAreActive == 0) {
+            this.input.setDefaultCursor('pointer');
+            this.cooldown = false;
+        }
     };
 
     renderOponent(label) {
