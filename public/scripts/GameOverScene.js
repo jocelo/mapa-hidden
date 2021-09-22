@@ -28,6 +28,7 @@ class GameOverScene extends Phaser.Scene {
 
         var add = this.add;
         var input = this.input;
+        var self = this;
 
         var bg_pos = {
             x: WIN_WIDTH / 2,
@@ -37,9 +38,9 @@ class GameOverScene extends Phaser.Scene {
         var congratulate_msg = 'something unexpected happened';
 
         var winningMessages = {
-            'self': 'You won!',
-            'tie': 'It\'s a tie!',
-            'oponent': 'You loose'
+            'self': 'Ganaste!',
+            'tie': 'Empate!',
+            'oponent': 'Perdiste'
         };
 
         if (this.winner in winningMessages) {
@@ -66,10 +67,17 @@ class GameOverScene extends Phaser.Scene {
         this.add.text(WIN_WIDTH / 2, WIN_HEIGHT * 0.6, 'Click to play again.');
 
         var bg = this.add.image(bg_pos.x, bg_pos.y, 'backgroundd');
-        bg.setScale(0.5);
+        bg.setScale(1.5);
+
+        this.tweens.add({
+            targets: bg,
+            props: {
+                scale: { value: 1, duration: 1500, ease: 'Bounce' }
+            }
+        });
 
         // play again button
-        this.add.image(bg_pos.x, bg_pos.y, 'button')
+        var btn_play_again = this.add.image(0, bg_pos.y, 'button')
             .setScale(0.4)
             .setInteractive()
             .on('clicked', function () {
@@ -82,8 +90,15 @@ class GameOverScene extends Phaser.Scene {
                 this.clearTint();
             });
 
+        this.tweens.add({
+            targets: btn_play_again,
+            props: {
+                x: { value: bg_pos.x, duration: 600 }
+            }
+        });
+
         // choose another scene button
-        add.image(bg_pos.x, bg_pos.y + 90, 'button')
+        var btn_change_scene = add.image(0, bg_pos.y + 90, 'button')
             .setScale(0.4)
             .setInteractive()
             .on('clicked', function () {
@@ -96,8 +111,15 @@ class GameOverScene extends Phaser.Scene {
                 this.clearTint();
             });
 
+        this.tweens.add({
+            targets: btn_change_scene,
+            props: {
+                x: { value: bg_pos.x, duration: 700 }
+            }
+        });
+
         // close everything button
-        this.add.image(bg_pos.x, bg_pos.y + 180, 'button')
+        var btn_exit = this.add.image(0, bg_pos.y + 180, 'button')
             .setScale(0.4)
             .setInteractive()
             .on('clicked', function () {
@@ -110,27 +132,48 @@ class GameOverScene extends Phaser.Scene {
                 this.clearTint();
             });
 
+        this.tweens.add({
+            targets: btn_exit,
+            props: {
+                x: { value: bg_pos.x, duration: 800 }
+            }
+        });
+
         WebFont.load({
             custom: {
                 families: ['LuckiestGuy', 'HammersmithOne']
             },
             active: function () {
-                add.text(bg_pos.x, bg_pos.y - 160, congratulate_msg, { fontFamily: 'LuckiestGuy', fontSize: 70, color: '#ff0000' })
+                var tt = add.text(bg_pos.x, -100, congratulate_msg, { fontFamily: 'LuckiestGuy', fontSize: 70, color: '#ff0000' })
                     .setShadow(2, 2, "#333333", 2, false, true)
                     .setStroke('#ffffff', 16)
                     .setOrigin(0.5);
 
-                add.text(bg_pos.x, bg_pos.y, 'Jugar de nuevo', { fontFamily: 'HammersmithOne', fontSize: 20, color: '#ffffff' })
+                self.tweens.add({
+                    targets: tt,
+                    props: {
+                        y: { value: bg_pos.y - 150, duration: 800 }
+                    }
+                });
+
+                var t1 = add.text(WIN_WIDTH + 100, bg_pos.y, 'Jugar de nuevo', { fontFamily: 'HammersmithOne', fontSize: 20, color: '#ffffff' })
                     .setShadow(2, 2, "#333333", 2, false, true)
                     .setOrigin(0.5);
 
-                add.text(bg_pos.x, bg_pos.y + 90, 'Cambiar escena', { fontFamily: 'HammersmithOne', fontSize: 20, color: '#ffffff' })
+                var t2 = add.text(WIN_WIDTH + 100, bg_pos.y + 90, 'Cambiar escena', { fontFamily: 'HammersmithOne', fontSize: 20, color: '#ffffff' })
                     .setShadow(2, 2, "#333333", 2, false, true)
                     .setOrigin(0.5);
 
-                add.text(bg_pos.x, bg_pos.y + 180, 'Salir', { fontFamily: 'HammersmithOne', fontSize: 20, color: '#ffffff' })
+                var t3 = add.text(WIN_WIDTH + 100, bg_pos.y + 180, 'Salir', { fontFamily: 'HammersmithOne', fontSize: 20, color: '#ffffff' })
                     .setShadow(2, 2, "#333333", 2, false, true)
                     .setOrigin(0.5);
+
+                self.tweens.add({
+                    targets: [t1, t2, t3],
+                    props: {
+                        x: { value: bg_pos.x, duration: 800 }
+                    }
+                });
             }
         });
     }
