@@ -2,6 +2,7 @@ class GameScene extends Phaser.Scene {
     constructor() {
         super('gamingPage');
 
+        this.alertBgGroup;
         this.bg_items = '';
         this.left_player_bg;
         this.right_player_bg;
@@ -12,14 +13,21 @@ class GameScene extends Phaser.Scene {
         this.text_groups;
         this.cooldown = false;
         this.cooldownText;
+        this.cooldownText2;
         this.cooldownBg;
         this.wrongEvents = [];
         this.total_objects = Object.keys(hidden_objects).length;
         this.total_found = 0;
         this.socket;
+
+        this.catAstroPhi = '';
+        this.sndCorrectChoice;
+        this.sndGameOver;
+        this.sndBackground;
     }
 
     preload() {
+        // images
         this.load.image('background', 'assets/bg/kawaii.png');
         this.load.image('wrong', 'assets/red-cross-icon-png.png');
         this.load.image('cursor', 'assets/cursor.png');
@@ -27,6 +35,13 @@ class GameScene extends Phaser.Scene {
             this.load.image(hidden_objects[one].id, `assets/${hidden_objects[one].id}.png`);
         }
         this.load.image('text_bg', 'assets/bg/bg.png');
+        this.load.image('panel', 'assets/panel_blue.png');
+
+        // audios
+        this.load.audio('wrongChoice', ['assets/audio/wrong_choice.wav']);
+        this.load.audio('correctChoice', ['assets/audio/correct_choice.wav']);
+        this.load.audio('gameOver', ['assets/audio/game_over.wav']);
+        this.load.audio('bg_music', ['assets/audio/steady_rain.wav']);
     };
 
     create() {
@@ -36,6 +51,7 @@ class GameScene extends Phaser.Scene {
 
         this.graphics = this.add.graphics({ lineStyle: { width: 10, color: 0xff0000 } });
         wrongChoices = this.add.group();
+        this.alertBgGroup = this.add.group();
         this.wrongEvents = [];
         this.input.setDefaultCursor('pointer');
 
@@ -90,7 +106,11 @@ class GameScene extends Phaser.Scene {
         this.gameIdLabel = this.add.text(WIN_WIDTH - 100, 10, this.gameId, { fontSize: '10px', fill: '#bbbbbb' });
 
         this.cooldownBg = this.add.rectangle(GAME_WIDTH / 2, WIN_HEIGHT / 2, GAME_WIDTH, WIN_HEIGHT, 0x000000, 0.8);
-        this.cooldownText = this.add.text(GAME_WIDTH / 3, WIN_HEIGHT / 2, 'You are clicking too fast, please wait', { fontSize: '40px', fill: '#FF0000' });
+        this.renderAlertBg();
+        this.cooldownText = this.add.text(GAME_WIDTH / 2, (WIN_HEIGHT / 2) - 30, 'Demasiado rapido!!', { fontSize: '35px', fill: '#000000' })
+            .setOrigin(0.5).setShadow(3, 3, 'rgba(255, 255, 255, 0.5)', 0);
+        this.cooldownText2 = this.add.text(GAME_WIDTH / 2, (WIN_HEIGHT / 2) + 30, 'Espera por favor', { fontSize: '25px', fill: '#000000' })
+            .setOrigin(0.5).setShadow(3, 3, 'rgba(255, 255, 255, 0.5)', 0);
 
         this.renderOponent('waiting');
         this.renderGameId('...loading');
@@ -110,6 +130,13 @@ class GameScene extends Phaser.Scene {
             console.log('and add a point to my oponent');
             self.oponentHitHandler(data.item);
         })
+
+        this.catAstroPhi = this.sound.add('wrongChoice');
+        this.sndCorrectChoice = this.sound.add('correctChoice');
+        this.sndGameOver = this.sound.add('gameOver');
+        this.sndBackground = this.sound.add('bg_music', { volume: 0.7 });
+        this.sndBackground.loop = true;
+        this.sndBackground.play();
     };
 
     update() {
@@ -117,11 +144,17 @@ class GameScene extends Phaser.Scene {
         toggleVisibilityBackgrounds(self);
 
         if (this.cooldown) {
+            this.alertBgGroup.setVisible(true).setDepth(1);
             this.cooldownText.setVisible(true).setDepth(1);
+            this.cooldownText2.setVisible(true).setDepth(1);
             this.cooldownBg.setVisible(true).setDepth(1);
+            this.input.setDefaultCursor('not-allowed');
         } else {
+            this.alertBgGroup.setVisible(false);
             this.cooldownText.setVisible(false);
+            this.cooldownText2.setVisible(false);
             this.cooldownBg.setVisible(false);
+            this.input.setDefaultCursor('pointer');
         }
 
         var howManyAreActive = 0;
@@ -134,17 +167,10 @@ class GameScene extends Phaser.Scene {
         }
 
         if (howManyAreActive > 3) {
-            this.cooldownText.setVisible(true).setDepth(1);
-            this.cooldownBg.setVisible(true).setDepth(1);
-            this.input.setDefaultCursor('not-allowed');
             this.cooldown = true;
-            // TODO: do something like below here
-        } else { // wait until no more cursors are visible... which might be up to 3 sec, meaning the last one that was activated
-            // pretty sure this will help with the stuttering
         }
 
         if (this.cooldown && howManyAreActive == 0) {
-            this.input.setDefaultCursor('pointer');
             this.cooldown = false;
         }
     };
@@ -162,6 +188,28 @@ class GameScene extends Phaser.Scene {
         this.gameIdLabel.setText(gameId);
     }
 
+    renderAlertBg() {
+        var boxShadow = this.add.graphics();
+        boxShadow.fillStyle(0xbbbbbb, 0.5);
+        boxShadow.fillRoundedRect((GAME_WIDTH / 2) - 245, (WIN_HEIGHT / 2) - 95, 515, 215, 32);
+        this.alertBgGroup.add(boxShadow);
+
+        var whiteBorder = this.add.graphics();
+        whiteBorder.fillStyle(0xffffff, 1);
+        whiteBorder.fillRoundedRect((GAME_WIDTH / 2) - 262, (WIN_HEIGHT / 2) - 112, 524, 224, 32);
+        this.alertBgGroup.add(whiteBorder);
+
+        var brownBorder = this.add.graphics();
+        brownBorder.fillStyle(0x66525b, 1);
+        brownBorder.fillRoundedRect((GAME_WIDTH / 2) - 256, (WIN_HEIGHT / 2) - 106, 512, 212, 32);
+        this.alertBgGroup.add(brownBorder);
+
+        var orangeBg = this.add.graphics();
+        orangeBg.fillStyle(0xf7b51b, 1);
+        orangeBg.fillRoundedRect((GAME_WIDTH / 2) - 240, (WIN_HEIGHT / 2) - 90, 480, 180, 25);
+        this.alertBgGroup.add(orangeBg);
+    }
+
     reset_scope() {
         this.total_found = 0;
         scores = {
@@ -170,7 +218,7 @@ class GameScene extends Phaser.Scene {
         };
     }
 
-    show_object_found(pointerCoord, text, color) {
+    showObjectFound(pointerCoord, text, color) {
         console.log(arguments);
         var text = this.add.text(pointerCoord.x, pointerCoord.y, text, { fontSize: '40px', fill: color });
         text.setShadow(5, 5, 'rgba(0,0,0,1)', 0);
@@ -195,6 +243,7 @@ class GameScene extends Phaser.Scene {
         }
         var mynewcross = this.add.image(game.input.mousePointer.x, game.input.mousePointer.y, 'wrong');
         wrongChoices.add(mynewcross);
+        this.catAstroPhi.play();
 
         var evt = this.time.addEvent({
             delay: 3000, callback: function (self) {
@@ -219,7 +268,7 @@ class GameScene extends Phaser.Scene {
 
         var theObject = this.children.getByName(imageName);
         this.redScoreText.setText(`${scores.red} found`);
-        this.show_object_found({ x: theObject.x, y: theObject.y }, '+1', SECOND_PLAYER.color);
+        this.showObjectFound({ x: theObject.x, y: theObject.y }, '+1', SECOND_PLAYER.color);
 
         this.tweens.add({
             targets: theObject,
@@ -240,6 +289,7 @@ class GameScene extends Phaser.Scene {
 
     checkWiner(self) {
         if (this.total_objects == this.total_found) {
+
             var theWinner = '';
 
             if (scores.red == scores.blue) {
@@ -249,6 +299,14 @@ class GameScene extends Phaser.Scene {
             } else {
                 theWinner = 'self';
             }
+
+            this.tweens.add({
+                targets: this.sndBackground,
+                volume: 0,
+                duration: 500
+            });
+
+            this.sndGameOver.play();
             this.socket.disconnect();
             this.cameras.main.fadeOut(700, 0, 0, 0);
 
@@ -321,6 +379,10 @@ hidden_objects = {
         id: 'robot',
         name: 'Robot',
         found: false
+    }, 'panda': {
+        id: 'panda',
+        name: 'Panda',
+        found: false
     }
 };
 
@@ -333,11 +395,12 @@ function clickHandler(the_image, self) {
     the_image.input.enabled = false;
 
     if (the_image.name in hidden_objects) {
+        this.sndCorrectChoice.play();
         hidden_objects[the_image.name].found = true;
         scores.blue += 1;
         this.total_found += 1;
         this.blueScoreText.setText(`${scores.blue} found`);
-        this.show_object_found({ x: game.input.mousePointer.x - 40, y: game.input.mousePointer.y - 20 }, '+1', FIRST_PLAYER.color);
+        this.showObjectFound({ x: game.input.mousePointer.x - 40, y: game.input.mousePointer.y - 20 }, '+1', FIRST_PLAYER.color);
         this.socket.emit('select.item', {
             gameId: this.socket.id,
             player: this.playerTag,
