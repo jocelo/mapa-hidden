@@ -3,6 +3,7 @@ class GameScene extends Phaser.Scene {
         super('gamingPage');
 
         this.alertBgGroup;
+        this.settingsGroup;
         this.bg_items = '';
         this.left_player_bg;
         this.right_player_bg;
@@ -20,10 +21,22 @@ class GameScene extends Phaser.Scene {
         this.total_found = 0;
         this.socket;
 
-        this.catAstroPhi = '';
+        this.settingsVisible = false;
+
+        this.sndWrongChoice = '';
         this.sndCorrectChoice;
         this.sndGameOver;
         this.sndBackground;
+    }
+
+    init(data) {
+        var element = document.createElement('style');
+        document.head.appendChild(element);
+        var sheet = element.sheet;
+        var styles = '@font-face { font-family: "LuckiestGuy"; src: url("assets/fonts/LuckiestGuy-Regular.ttf") format("opentype"); }\n';
+        sheet.insertRule(styles, 0);
+        styles = '@font-face { font-family: "HammersmithOne"; src: url("assets/fonts/HammersmithOne-Regular.ttf") format("opentype"); }\n';
+        sheet.insertRule(styles, 0);
     }
 
     preload() {
@@ -35,7 +48,11 @@ class GameScene extends Phaser.Scene {
             this.load.image(hidden_objects[one].id, `assets/${hidden_objects[one].id}.png`);
         }
         this.load.image('text_bg', 'assets/bg/bg.png');
-        this.load.image('panel', 'assets/panel_blue.png');
+        this.load.image('panel', 'assets/bg_panel_blue.png');
+        this.load.image('button', 'assets/button_blue.png');
+        this.load.image('bg_settings', 'assets/bg_stripes.png');
+
+        this.load.script('webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js');
 
         // audios
         this.load.audio('wrongChoice', ['assets/audio/wrong_choice.wav']);
@@ -52,6 +69,7 @@ class GameScene extends Phaser.Scene {
         this.graphics = this.add.graphics({ lineStyle: { width: 10, color: 0xff0000 } });
         wrongChoices = this.add.group();
         this.alertBgGroup = this.add.group();
+        this.settingsGroup = this.add.group();
         this.wrongEvents = [];
         this.input.setDefaultCursor('pointer');
 
@@ -77,6 +95,11 @@ class GameScene extends Phaser.Scene {
             gameObject.emit('clicked', gameObject);
         }, this);
 
+
+        // 
+        // Backgrounds
+        // 
+
         // Words background
         this.bg_items = this.add.rectangle(1300, 400, 200, 800, 0x000000, 0.8);
 
@@ -84,6 +107,14 @@ class GameScene extends Phaser.Scene {
         this.left_player_bg = this.add.rectangle(100, 35, 200, 50, 0x000000, 0.9);
         this.right_player_bg = this.add.rectangle(1100, 35, 200, 50, 0x000000, 0.9);
         // this.left_player_bg = this.add.rectangle(GAME_WIDTH / 2, 35, 200, 50, 0x000000, 0.9);
+        const settingsBtn = this.add.rectangle((WIN_WIDTH / 2) - 100, 0, 200, 50, 0x000000, 0.8);
+
+        settingsBtn.setInteractive();
+        settingsBtn.on('clicked', this.openSettings, this);
+
+        //
+        // Labels
+        //
 
         this.blueScoreText = this.add.text(16, 18, '0 found', { fontSize: '32px', fill: FIRST_PLAYER.color });
         this.blueScoreText.setShadow(3, 3, 'rgba(255,255,255,0.3)', 0);
@@ -91,7 +122,8 @@ class GameScene extends Phaser.Scene {
         this.redScoreText = this.add.text(1025, 18, '0 found', { fontSize: '32px', fill: SECOND_PLAYER.color });
         this.redScoreText.setShadow(3, 3, 'rgba(255,255,255,0.3)', 0);
 
-        // this.gameIdLabel.setShadow(3, 3, 'rgba(255,255,255,0.3)', 0);
+        this.add.text((WIN_WIDTH / 2) - 100, 13, 'Configuración', { fontSize: '15px', fill: '#ffffff' })
+            .setOrigin(0.5);
 
         var line = 0;
         this.text_groups = this.physics.add.staticGroup();
@@ -99,21 +131,23 @@ class GameScene extends Phaser.Scene {
             var the_text = this.add.text(1220, (50 * line++) + 30, hidden_objects[i].name, { fontSize: getFontSize(hidden_objects[i].name), fill: '#FFFFFF' });
             the_text.name = i;
             this.text_groups.add(the_text);
-            //the_text.alpha = 0.8;
-            //the_text.setFill('#FF0000');
         }
 
         this.gameIdLabel = this.add.text(WIN_WIDTH - 100, 10, this.gameId, { fontSize: '10px', fill: '#bbbbbb' });
 
         this.cooldownBg = this.add.rectangle(GAME_WIDTH / 2, WIN_HEIGHT / 2, GAME_WIDTH, WIN_HEIGHT, 0x000000, 0.8);
         this.renderAlertBg();
-        this.cooldownText = this.add.text(GAME_WIDTH / 2, (WIN_HEIGHT / 2) - 30, 'Demasiado rapido!!', { fontSize: '35px', fill: '#000000' })
-            .setOrigin(0.5).setShadow(3, 3, 'rgba(255, 255, 255, 0.5)', 0);
-        this.cooldownText2 = this.add.text(GAME_WIDTH / 2, (WIN_HEIGHT / 2) + 30, 'Espera por favor', { fontSize: '25px', fill: '#000000' })
-            .setOrigin(0.5).setShadow(3, 3, 'rgba(255, 255, 255, 0.5)', 0);
+        this.cooldownText = this.add.text(GAME_WIDTH / 2, (WIN_HEIGHT / 2) - 30, 'Demasiado rapido!!', { fontSize: '35px', fill: '#59f5fb' })
+            .setOrigin(0.5).setShadow(5, 5, 'rgba(128, 128, 128, 0.5)', 0);
+        this.cooldownText2 = this.add.text(GAME_WIDTH / 2, (WIN_HEIGHT / 2) + 30, 'Espera por favor', { fontSize: '25px', fill: '#ffffff' })
+            .setOrigin(0.5).setShadow(5, 5, 'rgba(128, 128, 128, 0.5)', 0);
 
         this.renderOponent('waiting');
         this.renderGameId('...loading');
+
+        this.createSettingsPanel();
+
+        this.settingsGroup.setVisible(false);
 
         this.socket.on("game.begin", function (data) {
             console.log('what game am I in and what player am I?');
@@ -131,7 +165,7 @@ class GameScene extends Phaser.Scene {
             self.oponentHitHandler(data.item);
         })
 
-        this.catAstroPhi = this.sound.add('wrongChoice');
+        this.sndWrongChoice = this.sound.add('wrongChoice');
         this.sndCorrectChoice = this.sound.add('correctChoice');
         this.sndGameOver = this.sound.add('gameOver');
         this.sndBackground = this.sound.add('bg_music', { volume: 0.7 });
@@ -191,11 +225,11 @@ class GameScene extends Phaser.Scene {
     renderAlertBg() {
         var boxShadow = this.add.graphics();
         boxShadow.fillStyle(0xbbbbbb, 0.5);
-        boxShadow.fillRoundedRect((GAME_WIDTH / 2) - 245, (WIN_HEIGHT / 2) - 95, 515, 215, 32);
+        boxShadow.fillRoundedRect((GAME_WIDTH / 2) - 245, (WIN_HEIGHT / 2) - 95, 515, 215, 35);
         this.alertBgGroup.add(boxShadow);
 
         var whiteBorder = this.add.graphics();
-        whiteBorder.fillStyle(0xffffff, 1);
+        whiteBorder.fillStyle(0xdddddd, 1);
         whiteBorder.fillRoundedRect((GAME_WIDTH / 2) - 262, (WIN_HEIGHT / 2) - 112, 524, 224, 32);
         this.alertBgGroup.add(whiteBorder);
 
@@ -205,9 +239,120 @@ class GameScene extends Phaser.Scene {
         this.alertBgGroup.add(brownBorder);
 
         var orangeBg = this.add.graphics();
-        orangeBg.fillStyle(0xf7b51b, 1);
+        orangeBg.fillStyle(0xe57e04, 1);
         orangeBg.fillRoundedRect((GAME_WIDTH / 2) - 240, (WIN_HEIGHT / 2) - 90, 480, 180, 25);
         this.alertBgGroup.add(orangeBg);
+    }
+
+    createSettingsPanel() {
+        var bg_pos = {
+            x: GAME_WIDTH / 2,
+            y: (WIN_HEIGHT / 2)
+        };
+        var add = this.add,
+            that = this;
+
+        //var bg_image = add.image(0, 0, 'bg_settings');
+        var bg_image = add.tileSprite(WIN_WIDTH / 2, WIN_HEIGHT / 2, WIN_WIDTH, WIN_HEIGHT, 'bg_settings');
+        this.settingsGroup.add(bg_image);
+        //bg_image.setOrigin(0, 0);
+
+        var bg_img = add.image(bg_pos.x, bg_pos.y, 'panel');
+        this.settingsGroup.add(bg_img);
+
+        var btn_change_scene = add.image(bg_pos.x, bg_pos.y + 20, 'button')
+            .setScale(0.4)
+            .setInteractive()
+            .on('clicked', function () {
+                this.closeSettings();
+            }, this)
+            .on('pointerover', function (event) {
+                this.setTint(0x2ba1b6);
+            })
+            .on('pointerout', function (event) {
+                this.clearTint();
+            });
+
+        this.settingsGroup.add(btn_change_scene);
+
+        var btn_new_game = this.add.image(bg_pos.x, bg_pos.y + 100, 'button')
+            .setScale(0.4)
+            .setInteractive()
+            .on('clicked', function () {
+                this.closeSettings();
+            }, this)
+            .on('pointerover', function (event) {
+                this.setTint(0x2ba1b6);
+            })
+            .on('pointerout', function (event) {
+                this.clearTint();
+            });
+
+        this.settingsGroup.add(btn_new_game);
+
+        var btn_close_settings = this.add.image(bg_pos.x, bg_pos.y + 180, 'button')
+            .setScale(0.4)
+            .setInteractive()
+            .on('clicked', function () {
+                this.closeSettings();
+            }, this)
+            .on('pointerover', function (event) {
+                this.setTint(0x2ba1b6);
+            })
+            .on('pointerout', function (event) {
+                this.clearTint();
+            });
+
+        this.settingsGroup.add(btn_close_settings);
+
+        WebFont.load({
+            custom: {
+                families: ['LuckiestGuy', 'HammersmithOne']
+            },
+            active: function () {
+                const settingsGroup = game.scene.getScene('gamingPage').settingsGroup;
+                var title = add.text(bg_pos.x, bg_pos.y - 200, 'Configuración', { fontFamily: 'LuckiestGuy', fontSize: 50, color: '#59f5fb' })
+                    .setShadow(5, 5, "#333333", 2, false, true)
+                    .setOrigin(0.5);
+
+                settingsGroup.add(title);
+
+                var t1 = add.text(bg_pos.x, bg_pos.y + 20, 'Cambiar Escena', { fontFamily: 'HammersmithOne', fontSize: 20, color: '#ffffff' })
+                    .setShadow(2, 2, "#333333", 2, false, true)
+                    .setOrigin(0.5);
+
+                settingsGroup.add(t1);
+
+                var t2 = add.text(bg_pos.x, bg_pos.y + 100, 'Juego Nuevo', { fontFamily: 'HammersmithOne', fontSize: 20, color: '#ffffff' })
+                    .setShadow(2, 2, "#333333", 2, false, true)
+                    .setOrigin(0.5);
+
+                settingsGroup.add(t2);
+
+                var t3 = add.text(bg_pos.x, bg_pos.y + 180, 'Salir', { fontFamily: 'HammersmithOne', fontSize: 20, color: '#ffffff' })
+                    .setShadow(2, 2, "#333333", 2, false, true)
+                    .setOrigin(0.5);
+
+                settingsGroup.add(t3);
+
+                var toggle_background_sound = add.text(bg_pos.x - 100, bg_pos.y - 120, 'Sonido de fondo', { fontFamily: 'HammersmithOne', fontSize: 20, color: '#ffffff' })
+                    .setShadow(2, 2, "#333333", 2, false, true);
+
+                settingsGroup.add(toggle_background_sound);
+
+                // that.settingsGroup.add(toggle_background_sound);
+                /*
+                self.tweens.add({
+                    targets: [t1, t2, t3, t4],
+                    props: {
+                        x: { value: bg_pos.x, duration: 800 }
+                    }
+                });
+                */
+
+                settingsGroup.setVisible(false);
+            }
+        });
     }
 
     reset_scope() {
@@ -219,7 +364,6 @@ class GameScene extends Phaser.Scene {
     }
 
     showObjectFound(pointerCoord, text, color) {
-        console.log(arguments);
         var text = this.add.text(pointerCoord.x, pointerCoord.y, text, { fontSize: '40px', fill: color });
         text.setShadow(5, 5, 'rgba(0,0,0,1)', 0);
 
@@ -238,12 +382,12 @@ class GameScene extends Phaser.Scene {
     }
 
     bg_click_listener() {
-        if (this.cooldown) {
+        if (this.cooldown || this.settingsVisible) {
             return;
         }
         var mynewcross = this.add.image(game.input.mousePointer.x, game.input.mousePointer.y, 'wrong');
         wrongChoices.add(mynewcross);
-        this.catAstroPhi.play();
+        this.sndWrongChoice.play();
 
         var evt = this.time.addEvent({
             delay: 3000, callback: function (self) {
@@ -314,6 +458,15 @@ class GameScene extends Phaser.Scene {
                 this.scene.start('donePage', { winner: theWinner });
             })
         }
+    }
+
+    closeSettings() {
+        this.settingsVisible = false;
+    }
+
+    openSettings() {
+        this.settingsVisible = true;
+        this.settingsGroup.setVisible(true);
     }
 }
 
@@ -387,7 +540,7 @@ hidden_objects = {
 };
 
 function clickHandler(the_image, self) {
-    if (this.cooldown) {
+    if (this.cooldown || this.settingsVisible) {
         return;
     }
 
