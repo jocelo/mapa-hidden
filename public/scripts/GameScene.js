@@ -51,6 +51,7 @@ class GameScene extends Phaser.Scene {
         this.load.image('panel', 'assets/bg_panel_blue.png');
         this.load.image('button', 'assets/button_blue.png');
         this.load.image('bg_settings', 'assets/bg_stripes.png');
+        this.load.image('close_cross', 'assets/cancel_blue.png');
 
         this.load.script('webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js');
 
@@ -122,7 +123,7 @@ class GameScene extends Phaser.Scene {
         this.redScoreText = this.add.text(1025, 18, '0 found', { fontSize: '32px', fill: SECOND_PLAYER.color });
         this.redScoreText.setShadow(3, 3, 'rgba(255,255,255,0.3)', 0);
 
-        this.add.text((WIN_WIDTH / 2) - 100, 13, 'Configuración', { fontSize: '15px', fill: '#ffffff' })
+        this.add.text((WIN_WIDTH / 2) - 100, 13, 'configuración', { fontSize: '15px', fill: '#ffffff' })
             .setOrigin(0.5);
 
         var line = 0;
@@ -260,6 +261,20 @@ class GameScene extends Phaser.Scene {
         var bg_img = add.image(bg_pos.x, bg_pos.y, 'panel');
         this.settingsGroup.add(bg_img);
 
+        var close_img = add.image(bg_pos.x + 250, bg_pos.y - 260, 'close_cross');
+        close_img.setInteractive();
+        close_img.on('clicked', function () {
+            this.closeSettings();
+        }, this);
+        close_img.on('pointerover', function (event) {
+            this.setTint(0xffbbbb);
+        });
+        close_img.on('pointerout', function (event) {
+            this.clearTint();
+        });
+
+        this.settingsGroup.add(close_img);
+
         var btn_change_scene = add.image(bg_pos.x, bg_pos.y + 20, 'button')
             .setScale(0.4)
             .setInteractive()
@@ -311,7 +326,7 @@ class GameScene extends Phaser.Scene {
             },
             active: function () {
                 const settingsGroup = game.scene.getScene('gamingPage').settingsGroup;
-                var title = add.text(bg_pos.x, bg_pos.y - 200, 'Configuración', { fontFamily: 'LuckiestGuy', fontSize: 50, color: '#59f5fb' })
+                var title = add.text(bg_pos.x + 10, bg_pos.y - 240, 'Configuración', { fontFamily: 'LuckiestGuy', fontSize: 40, color: '#ffffff' })
                     .setShadow(5, 5, "#333333", 2, false, true)
                     .setOrigin(0.5);
 
@@ -461,7 +476,9 @@ class GameScene extends Phaser.Scene {
     }
 
     closeSettings() {
+        console.log('testing ');
         this.settingsVisible = false;
+        this.settingsGroup.setVisible(false);
     }
 
     openSettings() {
