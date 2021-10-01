@@ -20,13 +20,20 @@ class GameScene extends Phaser.Scene {
         this.total_objects = Object.keys(hidden_objects).length;
         this.total_found = 0;
         this.socket;
+        this.backgroundMusicPlaying = true;
 
         this.settingsVisible = false;
 
         this.sndWrongChoice = '';
         this.sndCorrectChoice;
-        this.sndGameOver;
+        this.sndYouWon;
+        this.sndYouLoose;
         this.sndBackground;
+
+        this.bg_pos = {
+            x: GAME_WIDTH / 2,
+            y: (WIN_HEIGHT / 2)
+        };
     }
 
     init(data) {
@@ -58,7 +65,8 @@ class GameScene extends Phaser.Scene {
         // audios
         this.load.audio('wrongChoice', ['assets/audio/wrong_choice.wav']);
         this.load.audio('correctChoice', ['assets/audio/correct_choice.wav']);
-        this.load.audio('gameOver', ['assets/audio/game_over.wav']);
+        this.load.audio('youWon', ['assets/audio/game_over.wav']);
+        this.load.audio('youLoose', ['assets/audio/sad_trombone.wav']);
         this.load.audio('bg_music', ['assets/audio/steady_rain.wav']);
     };
 
@@ -148,7 +156,7 @@ class GameScene extends Phaser.Scene {
 
         this.createSettingsPanel();
 
-        this.settingsGroup.setVisible(false);
+        // this.settingsGroup.setVisible(false);
 
         this.socket.on("game.begin", function (data) {
             console.log('what game am I in and what player am I?');
@@ -168,7 +176,8 @@ class GameScene extends Phaser.Scene {
 
         this.sndWrongChoice = this.sound.add('wrongChoice');
         this.sndCorrectChoice = this.sound.add('correctChoice');
-        this.sndGameOver = this.sound.add('gameOver');
+        this.sndYouWon = this.sound.add('youWon');
+        this.sndYouLoose = this.sound.add('youLoose');
         this.sndBackground = this.sound.add('bg_music', { volume: 0.7 });
         this.sndBackground.loop = true;
         this.sndBackground.play();
@@ -254,14 +263,24 @@ class GameScene extends Phaser.Scene {
             that = this;
 
         //var bg_image = add.image(0, 0, 'bg_settings');
-        var bg_image = add.tileSprite(WIN_WIDTH / 2, WIN_HEIGHT / 2, WIN_WIDTH, WIN_HEIGHT, 'bg_settings');
+        var bg_image = add.tileSprite(WIN_WIDTH / 2, WIN_HEIGHT / 2, WIN_WIDTH + 210, WIN_HEIGHT + 210, 'bg_settings')
+            .setAlpha(0);
+        this.tweens.add({
+            targets: bg_image,
+            x: (WIN_WIDTH / 2) + 100,
+            y: (WIN_HEIGHT / 2) + 100,
+            duration: 2500,
+            loop: -1
+        });
         this.settingsGroup.add(bg_image);
         //bg_image.setOrigin(0, 0);
 
-        var bg_img = add.image(bg_pos.x, bg_pos.y, 'panel');
+        var bg_img = add.image(bg_pos.x, -500, 'panel');
+        bg_img.name = 'bg_settings_panel';
         this.settingsGroup.add(bg_img);
 
-        var close_img = add.image(bg_pos.x + 250, bg_pos.y - 260, 'close_cross');
+        var close_img = add.image(bg_pos.x + 250, bg_pos.y - 260, 'close_cross')
+            .setAlpha(0);
         close_img.setInteractive();
         close_img.on('clicked', function () {
             this.closeSettings();
@@ -275,8 +294,9 @@ class GameScene extends Phaser.Scene {
 
         this.settingsGroup.add(close_img);
 
-        var btn_change_scene = add.image(bg_pos.x, bg_pos.y + 20, 'button')
+        var btn_change_scene = add.image(-300, bg_pos.y + 20, 'button')
             .setScale(0.4)
+            .setName('someButton')
             .setInteractive()
             .on('clicked', function () {
                 this.closeSettings();
@@ -290,8 +310,9 @@ class GameScene extends Phaser.Scene {
 
         this.settingsGroup.add(btn_change_scene);
 
-        var btn_new_game = this.add.image(bg_pos.x, bg_pos.y + 100, 'button')
+        var btn_new_game = this.add.image(-300, bg_pos.y + 100, 'button')
             .setScale(0.4)
+            .setName('someButton')
             .setInteractive()
             .on('clicked', function () {
                 this.closeSettings();
@@ -305,8 +326,9 @@ class GameScene extends Phaser.Scene {
 
         this.settingsGroup.add(btn_new_game);
 
-        var btn_close_settings = this.add.image(bg_pos.x, bg_pos.y + 180, 'button')
+        var btn_close_settings = this.add.image(-300, bg_pos.y + 180, 'button')
             .setScale(0.4)
+            .setName('someButton')
             .setInteractive()
             .on('clicked', function () {
                 this.closeSettings();
@@ -320,6 +342,15 @@ class GameScene extends Phaser.Scene {
 
         this.settingsGroup.add(btn_close_settings);
 
+        // adding the slider
+        renderToggle(function () {
+            if (that.backgroundMusicPlaying) {
+                that.sndBackground.play();
+            } else {
+                that.sndBackground.stop();
+            }
+        }, this);
+
         WebFont.load({
             custom: {
                 families: ['LuckiestGuy', 'HammersmithOne']
@@ -328,30 +359,40 @@ class GameScene extends Phaser.Scene {
                 const settingsGroup = game.scene.getScene('gamingPage').settingsGroup;
                 var title = add.text(bg_pos.x + 10, bg_pos.y - 240, 'Configuración', { fontFamily: 'LuckiestGuy', fontSize: 40, color: '#ffffff' })
                     .setShadow(5, 5, "#333333", 2, false, true)
-                    .setOrigin(0.5);
+                    .setOrigin(0.5)
+                    .setScale(0.1)
+                    .setAlpha(0);
 
                 settingsGroup.add(title);
 
                 var t1 = add.text(bg_pos.x, bg_pos.y + 20, 'Cambiar Escena', { fontFamily: 'HammersmithOne', fontSize: 20, color: '#ffffff' })
                     .setShadow(2, 2, "#333333", 2, false, true)
-                    .setOrigin(0.5);
+                    .setOrigin(0.5)
+                    .setScale(0.1)
+                    .setAlpha(0);
 
                 settingsGroup.add(t1);
 
                 var t2 = add.text(bg_pos.x, bg_pos.y + 100, 'Juego Nuevo', { fontFamily: 'HammersmithOne', fontSize: 20, color: '#ffffff' })
                     .setShadow(2, 2, "#333333", 2, false, true)
-                    .setOrigin(0.5);
+                    .setOrigin(0.5)
+                    .setScale(0.1)
+                    .setAlpha(0);
 
                 settingsGroup.add(t2);
 
                 var t3 = add.text(bg_pos.x, bg_pos.y + 180, 'Salir', { fontFamily: 'HammersmithOne', fontSize: 20, color: '#ffffff' })
                     .setShadow(2, 2, "#333333", 2, false, true)
-                    .setOrigin(0.5);
+                    .setOrigin(0.5)
+                    .setScale(0.1)
+                    .setAlpha(0);
 
                 settingsGroup.add(t3);
 
-                var toggle_background_sound = add.text(bg_pos.x - 100, bg_pos.y - 120, 'Sonido de fondo', { fontFamily: 'HammersmithOne', fontSize: 20, color: '#ffffff' })
-                    .setShadow(2, 2, "#333333", 2, false, true);
+                var toggle_background_sound = add.text(bg_pos.x - 50, bg_pos.y - 120, 'Sonido de fondo', { fontFamily: 'HammersmithOne', fontSize: 20, color: '#ffffff' })
+                    .setShadow(2, 2, "#333333", 2, false, true)
+                    .setScale(0.1)
+                    .setAlpha(0);
 
                 settingsGroup.add(toggle_background_sound);
 
@@ -364,8 +405,6 @@ class GameScene extends Phaser.Scene {
                     }
                 });
                 */
-
-                settingsGroup.setVisible(false);
             }
         });
     }
@@ -454,8 +493,10 @@ class GameScene extends Phaser.Scene {
             if (scores.red == scores.blue) {
                 theWinner = 'tie';
             } else if (scores.red > scores.blue) {
+                this.sndYouLoose.play();
                 theWinner = 'oponent';
             } else {
+                this.sndYouWon.play();
                 theWinner = 'self';
             }
 
@@ -465,7 +506,6 @@ class GameScene extends Phaser.Scene {
                 duration: 500
             });
 
-            this.sndGameOver.play();
             this.socket.disconnect();
             this.cameras.main.fadeOut(700, 0, 0, 0);
 
@@ -476,14 +516,93 @@ class GameScene extends Phaser.Scene {
     }
 
     closeSettings() {
-        console.log('testing ');
+        console.log(' - testing - ');
+        //console.log(this.settingsGroup.children);
         this.settingsVisible = false;
-        this.settingsGroup.setVisible(false);
+        var justOneElm = this.settingsGroup.getMatching('name', 'bg_settings_panel');
+        const textElements = this.settingsGroup.getMatching('type', 'Text');
+        const buttonElements = this.settingsGroup.getMatching('name', 'someButton');
+        this.tweens.add({
+            targets: this.settingsGroup.getChildren(),
+            alpha: 0,
+            duration: 500,
+            onComplete: this.makeItShowAgainAndSetVisibleAsFalse.bind(this)
+        }, this);
+
+        this.tweens.add({
+            targets: justOneElm,
+            y: -500,
+            duration: 500,
+        }, this);
+
+        this.tweens.add({
+            targets: textElements,
+            props: {
+                alpha: { value: 0, duration: 500 },
+                scale: { value: 0, duration: 500 }
+            },
+        }, this);
+
+        this.tweens.add({
+            targets: buttonElements,
+            props: {
+                x: { value: GAME_WIDTH + 300, duration: 500 }
+            },
+            onComplete: this.repositionTextElements.bind(this)
+        }, this);
+
     }
 
     openSettings() {
         this.settingsVisible = true;
-        this.settingsGroup.setVisible(true);
+        var justOneElm = this.settingsGroup.getMatching('name', 'bg_settings_panel');
+        const textElements = this.settingsGroup.getMatching('type', 'Text');
+        const buttonElements = this.settingsGroup.getMatching('name', 'someButton');
+        console.log('the text elements are:');
+        console.log(this.settingsGroup.getChildren());
+        console.log(textElements);
+        // console.log()
+
+        this.tweens.add({
+            targets: this.settingsGroup.getChildren(),
+            alpha: 1,
+            duration: 500
+        }, this);
+
+        this.tweens.add({
+            targets: justOneElm,
+            y: this.bg_pos.y,
+            duration: 500
+        }, this);
+
+        this.tweens.add({
+            targets: textElements,
+            props: {
+                alpha: { value: 1, duration: 800 },
+                scale: { value: 1, duration: 700, ease: 'Bounce' }
+            }
+        }, this);
+
+        this.tweens.add({
+            targets: buttonElements,
+            props: {
+                x: { value: this.bg_pos.x, duration: 800, ease: 'Bounce' }
+            }
+        }, this);
+    }
+
+    makeItShowAgainAndSetVisibleAsFalse() {
+        console.log('here is the magic!!');
+    }
+
+    repositionTextElements() {
+        const buttonElements = this.settingsGroup.getMatching('name', 'someButton');
+        buttonElements.forEach(item => {
+            console.log(item);
+            item.x = -300;
+        });
+        // buttonElements.setOrigin(300);
+        console.log('caca 2');
     }
 }
 
@@ -624,4 +743,36 @@ function toggleVisibilityBackgrounds(self) {
     } else {
         self.right_player_bg.alpha = 0.9;
     }
+}
+
+function renderToggle(callbackFn, that) {
+    that.add.graphics()
+        .fillStyle(0x707070, 1)
+        .fillRoundedRect((GAME_WIDTH / 2) - 150, (WIN_HEIGHT / 2) - 125, 80, 30, 15);
+
+    var theCircle = that.add.circle((GAME_WIDTH / 2) - 90, (WIN_HEIGHT / 2) - 110, 20, 0xffffff)
+        .setStrokeStyle(10, 0x32a860)
+        .setInteractive()
+        .on('clicked', function () {
+            if (that.backgroundMusicPlaying) {
+                that.tweens.add({
+                    targets: theCircle,
+                    props: {
+                        x: { value: (GAME_WIDTH / 2) - 130, duration: 200 }
+                    }
+                });
+                theCircle.setStrokeStyle(10, 0x555555);
+            } else {
+                that.tweens.add({
+                    targets: theCircle,
+                    props: {
+                        x: { value: (GAME_WIDTH / 2) - 90, duration: 200 }
+                    }
+                })
+                theCircle.setStrokeStyle(10, 0x32a860);
+            }
+
+            that.backgroundMusicPlaying = !that.backgroundMusicPlaying;
+            callbackFn();
+        }, this);
 }
