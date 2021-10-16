@@ -52,7 +52,7 @@ class GameScene extends Phaser.Scene {
         this.load.image('wrong', 'assets/red-cross-icon-png.png');
         this.load.image('cursor', 'assets/cursor.png');
         for (var one in hidden_objects) {
-            this.load.image(hidden_objects[one].id, `assets/${hidden_objects[one].id}.png`);
+            this.load.image(hidden_objects[one].id, `assets/objects/${hidden_objects[one].id}.png`);
         }
         this.load.image('text_bg', 'assets/bg/bg.png');
         this.load.image('panel', 'assets/bg_panel_blue.png');
@@ -116,10 +116,12 @@ class GameScene extends Phaser.Scene {
         this.left_player_bg = this.add.rectangle(100, 35, 200, 50, 0x000000, 0.9);
         this.right_player_bg = this.add.rectangle(1100, 35, 200, 50, 0x000000, 0.9);
         // this.left_player_bg = this.add.rectangle(GAME_WIDTH / 2, 35, 200, 50, 0x000000, 0.9);
-        const settingsBtn = this.add.rectangle((WIN_WIDTH / 2) - 100, 0, 200, 50, 0x000000, 0.8);
+        const settingsBtn = this.add.graphics()
+            .fillStyle(0x000000, 0.8)
+            .fillRoundedRect((WIN_WIDTH / 2) - 200, -20, 200, 50, 15);
 
-        settingsBtn.setInteractive();
-        settingsBtn.on('clicked', this.openSettings, this);
+        settingsBtn.setInteractive(new Phaser.Geom.Rectangle((WIN_WIDTH / 2) - 200, -20, 200, 50), Phaser.Geom.Rectangle.Contains);
+        settingsBtn.on('pointerup', this.openSettings, this);
 
         //
         // Labels
@@ -131,7 +133,7 @@ class GameScene extends Phaser.Scene {
         this.redScoreText = this.add.text(1025, 18, '0 found', { fontSize: '32px', fill: SECOND_PLAYER.color });
         this.redScoreText.setShadow(3, 3, 'rgba(255,255,255,0.3)', 0);
 
-        this.add.text((WIN_WIDTH / 2) - 100, 13, 'configuración', { fontSize: '15px', fill: '#ffffff' })
+        this.add.text((WIN_WIDTH / 2) - 100, 13, 'opciones', { fontSize: '15px', fill: '#ffffff' })
             .setOrigin(0.5);
 
         var line = 0;
@@ -145,9 +147,9 @@ class GameScene extends Phaser.Scene {
         this.gameIdLabel = this.add.text(WIN_WIDTH - 100, 10, this.gameId, { fontSize: '10px', fill: '#bbbbbb' });
 
         this.cooldownBg = this.add.rectangle(GAME_WIDTH / 2, WIN_HEIGHT / 2, GAME_WIDTH, WIN_HEIGHT, 0x000000, 0.8);
-        this.renderAlertBg();
-        this.cooldownText = this.add.text(GAME_WIDTH / 2, (WIN_HEIGHT / 2) - 30, 'Demasiado rapido!!', { fontSize: '35px', fill: '#59f5fb' })
-            .setOrigin(0.5).setShadow(5, 5, 'rgba(128, 128, 128, 0.5)', 0);
+        this.renderCooldownPhase();
+        this.cooldownText = this.add.text(GAME_WIDTH / 2, (WIN_HEIGHT / 2) - 30, 'Demasiado rapido!!', { fontSize: '35px', fill: '#66525b' })
+            .setOrigin(0.5).setShadow(2, 2, 'rgba(0, 0, 0, 0.5)', 0);
         this.cooldownText2 = this.add.text(GAME_WIDTH / 2, (WIN_HEIGHT / 2) + 30, 'Espera por favor', { fontSize: '25px', fill: '#ffffff' })
             .setOrigin(0.5).setShadow(5, 5, 'rgba(128, 128, 128, 0.5)', 0);
 
@@ -232,25 +234,30 @@ class GameScene extends Phaser.Scene {
         this.gameIdLabel.setText(gameId);
     }
 
-    renderAlertBg() {
-        var boxShadow = this.add.graphics();
+    renderCooldownPhase() {
+        const boxShadow = this.add.graphics();
         boxShadow.fillStyle(0xbbbbbb, 0.5);
         boxShadow.fillRoundedRect((GAME_WIDTH / 2) - 245, (WIN_HEIGHT / 2) - 95, 515, 215, 35);
         this.alertBgGroup.add(boxShadow);
 
-        var whiteBorder = this.add.graphics();
+        const whiteBorder = this.add.graphics();
         whiteBorder.fillStyle(0xdddddd, 1);
         whiteBorder.fillRoundedRect((GAME_WIDTH / 2) - 262, (WIN_HEIGHT / 2) - 112, 524, 224, 32);
         this.alertBgGroup.add(whiteBorder);
 
-        var brownBorder = this.add.graphics();
+        const brownBorder = this.add.graphics();
         brownBorder.fillStyle(0x66525b, 1);
-        brownBorder.fillRoundedRect((GAME_WIDTH / 2) - 256, (WIN_HEIGHT / 2) - 106, 512, 212, 32);
+        brownBorder.fillRoundedRect((GAME_WIDTH / 2) - 256, (WIN_HEIGHT / 2) - 106, 512, 212, 28);
         this.alertBgGroup.add(brownBorder);
 
-        var orangeBg = this.add.graphics();
+        const yellowBorder = this.add.graphics();
+        yellowBorder.fillStyle(0xf4be1f, 1);
+        yellowBorder.fillRoundedRect((GAME_WIDTH / 2) - 250, (WIN_HEIGHT / 2) - 98, 500, 198, 25);
+        this.alertBgGroup.add(yellowBorder);
+
+        const orangeBg = this.add.graphics();
         orangeBg.fillStyle(0xe57e04, 1);
-        orangeBg.fillRoundedRect((GAME_WIDTH / 2) - 240, (WIN_HEIGHT / 2) - 90, 480, 180, 25);
+        orangeBg.fillRoundedRect((GAME_WIDTH / 2) - 236, (WIN_HEIGHT / 2) - 80, 462, 162, 15);
         this.alertBgGroup.add(orangeBg);
     }
 
@@ -516,17 +523,17 @@ class GameScene extends Phaser.Scene {
     }
 
     closeSettings() {
-        console.log(' - testing - ');
         //console.log(this.settingsGroup.children);
         this.settingsVisible = false;
         var justOneElm = this.settingsGroup.getMatching('name', 'bg_settings_panel');
         const textElements = this.settingsGroup.getMatching('type', 'Text');
         const buttonElements = this.settingsGroup.getMatching('name', 'someButton');
+        console.log('what is left?');
+        console.log(this.settingsGroup.getChildren());
         this.tweens.add({
             targets: this.settingsGroup.getChildren(),
             alpha: 0,
-            duration: 500,
-            onComplete: this.makeItShowAgainAndSetVisibleAsFalse.bind(this)
+            duration: 500
         }, this);
 
         this.tweens.add({
@@ -591,18 +598,12 @@ class GameScene extends Phaser.Scene {
         }, this);
     }
 
-    makeItShowAgainAndSetVisibleAsFalse() {
-        console.log('here is the magic!!');
-    }
-
     repositionTextElements() {
         const buttonElements = this.settingsGroup.getMatching('name', 'someButton');
         buttonElements.forEach(item => {
             console.log(item);
             item.x = -300;
         });
-        // buttonElements.setOrigin(300);
-        console.log('caca 2');
     }
 }
 
@@ -746,12 +747,16 @@ function toggleVisibilityBackgrounds(self) {
 }
 
 function renderToggle(callbackFn, that) {
-    that.add.graphics()
+    var background_filling = that.add.graphics()
         .fillStyle(0x707070, 1)
+        .setAlpha(0)
         .fillRoundedRect((GAME_WIDTH / 2) - 150, (WIN_HEIGHT / 2) - 125, 80, 30, 15);
+
+    that.settingsGroup.add(background_filling);
 
     var theCircle = that.add.circle((GAME_WIDTH / 2) - 90, (WIN_HEIGHT / 2) - 110, 20, 0xffffff)
         .setStrokeStyle(10, 0x32a860)
+        .setAlpha(0)
         .setInteractive()
         .on('clicked', function () {
             if (that.backgroundMusicPlaying) {
@@ -775,4 +780,6 @@ function renderToggle(callbackFn, that) {
             that.backgroundMusicPlaying = !that.backgroundMusicPlaying;
             callbackFn();
         }, this);
+
+    that.settingsGroup.add(theCircle);
 }
