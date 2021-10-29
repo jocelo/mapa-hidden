@@ -50,7 +50,8 @@ class GameScene extends Phaser.Scene {
         // images
         // this.load.image('background', 'assets/bg/kawaii.png'); // otoño
         // this.load.image('background', 'assets/bg/classroom.png'); // salon de clases
-        this.load.image('background', 'assets/bg/treasure.png'); // tesoros
+        // this.load.image('background', 'assets/bg/treasure.png'); // tesoros
+        this.load.image('background', 'assets/bg/chalkboard.png'); // chalkboard
         this.load.image('wrong', 'assets/red-cross-icon-png.png');
         this.load.image('cursor', 'assets/cursor.png');
         for (var one in hidden_objects) {
@@ -633,7 +634,7 @@ var hidden_objects = {
         found: false
     }, 'bow': {
         id: 'bow',
-        name: 'Bow',
+        name: 'Moño',
         found: false
     }, 'cactus': {
         id: 'cactus',
@@ -641,7 +642,7 @@ var hidden_objects = {
         found: false
     }, 'cloud': {
         id: 'cloud',
-        name: 'Cloud',
+        name: 'Nube',
         found: false
     }, 'hamster': {
         id: 'hamster',
@@ -649,15 +650,15 @@ var hidden_objects = {
         found: false
     }, 'ice_cream': {
         id: 'ice_cream',
-        name: 'Ice Cream',
+        name: 'Cono de Nieve',
         found: false
     }, 'lollypop': {
         id: 'lollypop',
-        name: 'Lolly-Pop',
+        name: 'Paleta',
         found: false
     }, 'owl': {
         id: 'owl',
-        name: 'Owl',
+        name: 'Buho',
         found: false
     }, 'panda': {
         id: 'panda',
@@ -665,11 +666,11 @@ var hidden_objects = {
         found: false
     }, 'unicorn_cake': {
         id: 'unicorn_cake',
-        name: 'Unicorn Cake',
+        name: 'Pastel de Unicornio',
         found: false
     }, 'rice_bowl': {
         id: 'rice_bowl',
-        name: 'Rice Bowl',
+        name: 'Tazon de Arroz',
         found: false
     }
 };
@@ -750,6 +751,62 @@ hidden_objects = {
     }, 'necklace': {
         id: 'necklace',
         name: 'Collar',
+        found: false
+    }
+}
+
+hidden_objects = {
+    'cilinder': {
+        id: 'cilinder',
+        name: 'Cilindro',
+        found: false
+    }, 'cube': {
+        id: 'cube',
+        name: 'Cubo',
+        found: false
+    }, 'one': {
+        id: 'one',
+        name: 'Numero uno',
+        found: false
+    }, 'calculator': {
+        id: 'calculator',
+        name: 'Calculadora',
+        found: false
+    }, 'compass': {
+        id: 'compass',
+        name: 'Compas',
+        found: false
+    }, 'ruler_chalk': {
+        id: 'ruler_chalk',
+        name: 'Regla',
+        found: false
+    }, 'infinity': {
+        id: 'infinity',
+        name: 'Simbolo de Infinito',
+        found: false
+    }, 'phi': {
+        id: 'phi',
+        name: 'Simbolo de Pí',
+        found: false
+    }, 'light_bulb': {
+        id: 'light_bulb',
+        name: 'Foco',
+        found: false
+    }, 'hexagon': {
+        id: 'hexagon',
+        name: 'Hexagono',
+        found: false
+    }, 'formula': {
+        id: 'formula',
+        name: 'Formula General',
+        found: false
+    }, 'pencil_chalk': {
+        id: 'pencil_chalk',
+        name: 'Lápiz',
+        found: false
+    }, 'tictactoe': {
+        id: 'tictactoe',
+        name: 'Gato',
         found: false
     }
 }
