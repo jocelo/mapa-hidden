@@ -71,7 +71,33 @@ io.on('connection', function (socket) {
                 item: data.item
             });
         }
-    })
+    });
+
+    socket.on('request.games.available', (data) => {
+        console.log('available games!!');
+        console.log(a_games);
+        socket.emit('games.available', {
+            'otoño': [
+                'one',
+                'two'
+            ],
+            'escuela': [],
+            'tesoro': [
+                'three',
+                'four',
+                'five'
+            ],
+            'ciudad': [],
+            'pizarron': [
+                'six',
+                'seven',
+                'eight',
+                'nine',
+                'ten'
+            ],
+            'retro': []
+        });
+    });
 
     join(socket, player);
 

@@ -174,7 +174,7 @@ class GameScene extends Phaser.Scene {
             console.log('need to remove this item from the list:', data.item);
             console.log('and add a point to my oponent');
             self.oponentHitHandler(data.item);
-        })
+        });
 
         this.sndWrongChoice = this.sound.add('wrongChoice');
         this.sndCorrectChoice = this.sound.add('correctChoice');
@@ -306,7 +306,7 @@ class GameScene extends Phaser.Scene {
             .setName('someButton')
             .setInteractive()
             .on('clicked', function () {
-                this.closeSettings();
+                this.pickScene(that);
             }, this)
             .on('pointerover', function (event) {
                 this.setTint(0x2ba1b6);
@@ -518,7 +518,7 @@ class GameScene extends Phaser.Scene {
 
             this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, (cam, effect) => {
                 this.scene.start('donePage', { winner: theWinner });
-            })
+            });
         }
     }
 
@@ -558,6 +558,17 @@ class GameScene extends Phaser.Scene {
             onComplete: this.repositionTextElements.bind(this)
         }, this);
 
+    }
+
+    pickScene(dat) {
+        console.log('go to pickScene');
+        console.log(this);
+
+        this.cameras.main.fadeOut(700, 0, 0, 0);
+
+        this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, (cam, effect) => {
+            this.scene.start('pickGame', { winner: true });
+        });
     }
 
     openSettings() {
