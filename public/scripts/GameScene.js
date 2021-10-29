@@ -51,7 +51,9 @@ class GameScene extends Phaser.Scene {
         // this.load.image('background', 'assets/bg/kawaii.png'); // otoño
         // this.load.image('background', 'assets/bg/classroom.png'); // salon de clases
         // this.load.image('background', 'assets/bg/treasure.png'); // tesoros
-        this.load.image('background', 'assets/bg/chalkboard.png'); // chalkboard
+        // this.load.image('background', 'assets/bg/chalkboard.png'); // chalkboard
+        // this.load.image('background', 'assets/bg/city.png'); // ciudad
+        this.load.image('background', 'assets/bg/retro.png'); // retro
         this.load.image('wrong', 'assets/red-cross-icon-png.png');
         this.load.image('cursor', 'assets/cursor.png');
         for (var one in hidden_objects) {
@@ -807,6 +809,46 @@ hidden_objects = {
     }, 'tictactoe': {
         id: 'tictactoe',
         name: 'Gato',
+        found: false
+    }
+}
+
+hidden_objects = {
+    'flower': {
+        id: 'flower',
+        name: 'Flor',
+        found: false
+    }, 'lightpost': {
+        id: 'lightpost',
+        name: 'Poste de Luz',
+        found: false
+    }, 'butterfly': {
+        id: 'butterfly',
+        name: 'Mariposa',
+        found: false
+    }, 'cube_city': {
+        id: 'cube_city',
+        name: 'Cubo',
+        found: false
+    }, 'bottle': {
+        id: 'bottle',
+        name: 'Botella',
+        found: false
+    }, 'coin': {
+        id: 'coin',
+        name: 'Moneda',
+        found: false
+    }, 'bird': {
+        id: 'bird',
+        name: 'Pàjaro',
+        found: false
+    }, 'bow_city': {
+        id: 'bow_city',
+        name: 'Moño de cabello',
+        found: false
+    }, 'flags': {
+        id: 'flags',
+        name: 'Banderin',
         found: false
     }
 }
