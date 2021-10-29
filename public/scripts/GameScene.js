@@ -853,6 +853,62 @@ hidden_objects = {
     }
 }
 
+hidden_objects = {
+    'tetris': {
+        id: 'tetris',
+        name: 'Piezas de tetris',
+        found: false
+    }, 'vhs': {
+        id: 'vhs',
+        name: 'Cassette de VHS',
+        found: false
+    }, 'roller_skates': {
+        id: 'roller_skates',
+        name: 'Patines',
+        found: false
+    }, '3d_lens': {
+        id: '3d_lens',
+        name: 'Lentes 3D',
+        found: false
+    }, 'nokia': {
+        id: 'nokia',
+        name: 'Celular',
+        found: false
+    }, 'cassette': {
+        id: 'cassette',
+        name: 'Cassette de Música',
+        found: false
+    }, 'guitar': {
+        id: 'guitar',
+        name: 'Guitarra',
+        found: false
+    }, 'envelope': {
+        id: 'envelope',
+        name: 'Sobre para carta',
+        found: false
+    }, 'vinyl': {
+        id: 'vinyl',
+        name: 'Disco de vinil',
+        found: false
+    }, 'mouse': {
+        id: 'mouse',
+        name: 'Mouse de computadora',
+        found: false
+    }, 'tennis': {
+        id: 'tennis',
+        name: 'Tenis',
+        found: false
+    }, 'polaroid': {
+        id: 'polaroid',
+        name: 'Camara de Instantaneas',
+        found: false
+    }, 'discman': {
+        id: 'discman',
+        name: 'Disc-Man',
+        found: false
+    }
+}
+
 function clickHandler(the_image, self) {
     if (this.cooldown || this.settingsVisible) {
         return;
