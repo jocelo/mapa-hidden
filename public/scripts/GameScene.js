@@ -49,7 +49,8 @@ class GameScene extends Phaser.Scene {
     preload() {
         // images
         // this.load.image('background', 'assets/bg/kawaii.png'); // otoño
-        this.load.image('background', 'assets/bg/classroom.png');
+        // this.load.image('background', 'assets/bg/classroom.png'); // salon de clases
+        this.load.image('background', 'assets/bg/treasure.png'); // tesoros
         this.load.image('wrong', 'assets/red-cross-icon-png.png');
         this.load.image('cursor', 'assets/cursor.png');
         for (var one in hidden_objects) {
@@ -709,6 +710,46 @@ hidden_objects = {
     }, 'basket_ball': {
         id: 'basket_ball',
         name: 'Pelota de basquetball',
+        found: false
+    }
+}
+
+hidden_objects = {
+    'crown': {
+        id: 'crown',
+        name: 'Corona',
+        found: false
+    }, 'ring': {
+        id: 'ring',
+        name: 'Anillo',
+        found: false
+    }, 'ruby': {
+        id: 'ruby',
+        name: 'Gema de Ruby',
+        found: false
+    }, 'gold_necklace': {
+        id: 'gold_necklace',
+        name: 'Collar de Oro',
+        found: false
+    }, 'pearls': {
+        id: 'pearls',
+        name: 'Collar de perlas',
+        found: false
+    }, 'bracelet': {
+        id: 'bracelet',
+        name: 'Bracalete',
+        found: false
+    }, 'blue_earrings': {
+        id: 'blue_earrings',
+        name: 'Aretes azules',
+        found: false
+    }, 'butterfly_brooch': {
+        id: 'butterfly_brooch',
+        name: 'Prendedor de Mariposa',
+        found: false
+    }, 'necklace': {
+        id: 'necklace',
+        name: 'Collar',
         found: false
     }
 }
