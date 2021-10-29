@@ -48,7 +48,8 @@ class GameScene extends Phaser.Scene {
 
     preload() {
         // images
-        this.load.image('background', 'assets/bg/kawaii.png');
+        // this.load.image('background', 'assets/bg/kawaii.png'); // otoño
+        this.load.image('background', 'assets/bg/classroom.png');
         this.load.image('wrong', 'assets/red-cross-icon-png.png');
         this.load.image('cursor', 'assets/cursor.png');
         for (var one in hidden_objects) {
@@ -561,11 +562,7 @@ class GameScene extends Phaser.Scene {
     }
 
     pickScene(dat) {
-        console.log('go to pickScene');
-        console.log(this);
-
         this.cameras.main.fadeOut(700, 0, 0, 0);
-
         this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, (cam, effect) => {
             this.scene.start('pickGame', { winner: true });
         });
@@ -626,66 +623,95 @@ var the_objects,
     scores = {
         'blue': 0,
         'red': 0
-    },
-    hidden_objects = {
-        'robot': {
-            id: 'robot',
-            name: 'Robot',
-            found: false
-        }, 'bow': {
-            id: 'bow',
-            name: 'Bow',
-            found: false
-        }, 'cactus': {
-            id: 'cactus',
-            name: 'Cactus',
-            found: false
-        }, 'cloud': {
-            id: 'cloud',
-            name: 'Cloud',
-            found: false
-        }, 'hamster': {
-            id: 'hamster',
-            name: 'Hamster',
-            found: false
-        }, 'ice_cream': {
-            id: 'ice_cream',
-            name: 'Ice Cream',
-            found: false
-        }, 'lollypop': {
-            id: 'lollypop',
-            name: 'Lolly-Pop',
-            found: false
-        }, 'owl': {
-            id: 'owl',
-            name: 'Owl',
-            found: false
-        }, 'panda': {
-            id: 'panda',
-            name: 'Panda',
-            found: false
-        }, 'unicorn_cake': {
-            id: 'unicorn_cake',
-            name: 'Unicorn Cake',
-            found: false
-        }, 'rice_bowl': {
-            id: 'rice_bowl',
-            name: 'Rice Bowl',
-            found: false
-        }
     };
-
-hidden_objects = {
+// otoño
+var hidden_objects = {
     'robot': {
         id: 'robot',
         name: 'Robot',
+        found: false
+    }, 'bow': {
+        id: 'bow',
+        name: 'Bow',
+        found: false
+    }, 'cactus': {
+        id: 'cactus',
+        name: 'Cactus',
+        found: false
+    }, 'cloud': {
+        id: 'cloud',
+        name: 'Cloud',
+        found: false
+    }, 'hamster': {
+        id: 'hamster',
+        name: 'Hamster',
+        found: false
+    }, 'ice_cream': {
+        id: 'ice_cream',
+        name: 'Ice Cream',
+        found: false
+    }, 'lollypop': {
+        id: 'lollypop',
+        name: 'Lolly-Pop',
+        found: false
+    }, 'owl': {
+        id: 'owl',
+        name: 'Owl',
         found: false
     }, 'panda': {
         id: 'panda',
         name: 'Panda',
         found: false
+    }, 'unicorn_cake': {
+        id: 'unicorn_cake',
+        name: 'Unicorn Cake',
+        found: false
+    }, 'rice_bowl': {
+        id: 'rice_bowl',
+        name: 'Rice Bowl',
+        found: false
     }
 };
+
+hidden_objects = {
+    'mexico': {
+        id: 'mexico',
+        name: 'Mapa de Mexico',
+        found: false
+    }, 'ruler': {
+        id: 'ruler',
+        name: 'Regla',
+        found: false
+    }, 'calendar': {
+        id: 'calendar',
+        name: 'Calendario',
+        found: false
+    }, 'pencil': {
+        id: 'pencil',
+        name: 'Lapiz',
+        found: false
+    }, 'eraser': {
+        id: 'eraser',
+        name: 'Goma',
+        found: false
+    }, 'scissors': {
+        id: 'scissors',
+        name: 'Tijeras',
+        found: false
+    }, 'paper_clips': {
+        id: 'paper_clips',
+        name: 'Clips para papel',
+        found: false
+    }, 'diskette': {
+        id: 'diskette',
+        name: 'Disco flexible',
+        found: false
+    }, 'basket_ball': {
+        id: 'basket_ball',
+        name: 'Pelota de basquetball',
+        found: false
+    }
+}
 
 function clickHandler(the_image, self) {
     if (this.cooldown || this.settingsVisible) {
