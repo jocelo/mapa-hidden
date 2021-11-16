@@ -29,7 +29,84 @@ app.get('/', (req, res) => {
     stream.pipe(res);
 });
 
-var games = {};
+var games = {
+    'kawaii': {
+        'robot': 'Robot',
+        'bow': 'Moño',
+        'cactus': 'Cactus',
+        'cloud': 'Nube',
+        'hamster': 'Hamster',
+        'ice_cream': 'Cono de Nieve',
+        'lollypop': 'Paleta',
+        'owl': 'Buho',
+        'panda': 'Panda',
+        'unicorn_cake': 'Pastel de Unicornio',
+        'rice_bowl': 'Tazon de Arroz'
+    },
+    'classroom': {
+        'mexico': 'Mapa de Mexico',
+        'ruler': 'Regla',
+        'calendar': 'Calendario',
+        'pencil': 'Lapiz',
+        'eraser': 'Goma',
+        'scissors': 'Tijeras',
+        'paper_clips': 'Clips para papel',
+        'diskette': 'Disco flexible',
+        'basket_ball': 'Pelota de basquetball'
+    },
+    'treasure': {
+        'crown': 'Corona',
+        'ring': 'Anillo',
+        'ruby': 'Gema de Ruby',
+        'gold_necklace': 'Collar de Oro',
+        'pearls': 'Collar de perlas',
+        'bracelet': 'Bracalete',
+        'blue_earrings': 'Aretes azules',
+        'butterfly_brooch': 'Prendedor de Mariposa',
+        'necklace': 'Collar'
+    },
+    'chalkboard': {
+        'cilinder': 'Cilindro',
+        'cube': 'Cubo',
+        'one': 'Numero uno',
+        'calculator': 'Calculadora',
+        'compass': 'Compas',
+        'ruler_chalk': 'Regla',
+        'infinity': 'Simbolo de Infinito',
+        'phi': 'Simbolo de Pí',
+        'light_bulb': 'Foco',
+        'hexagon': 'Hexagono',
+        'formula': 'Formula General',
+        'pencil_chalk': 'Lápiz',
+        'tictactoe': 'Gato'
+    },
+    'city': {
+        'flower': 'Flor',
+        'lightpost': 'Poste de Luz',
+        'butterfly': 'Mariposa',
+        'cube_city': 'Cubo',
+        'bottle': 'Botella',
+        'coin': 'Moneda',
+        'bird': 'Pájaro',
+        'bow_city': 'Moño de cabello',
+        'flags': 'Banderin'
+    },
+    'retro': {
+        'tetris': 'Piezas de tetris',
+        'vhs': 'Cassette de VHS',
+        'roller_skates': 'Patines',
+        '3d_lens': 'Lentes 3D',
+        'nokia': 'Celular',
+        'cassette': 'Cassette de Música',
+        'guitar': 'Guitarra',
+        'envelope': 'Sobre para carta',
+        'vinyl': 'Disco de vinil',
+        'mouse': 'Mouse de computadora',
+        'tennis': 'Tenis',
+        'polaroid': 'Camara de Instantaneas',
+        'discman': 'Disc-Man'
+    }
+};
 var a_games = [];
 var unmatched;
 
@@ -53,6 +130,27 @@ io.on('connection', function (socket) {
         }
 
         socket.broadcast.emit('client.disconnect', socket.id);
+    });
+
+    socket.on('request.game', (gameId) => {
+        io.emit('get.game', {
+            gameData: {
+                id: 'city',
+                bgImg: 'city.png',
+                bgMusic: 'steady_rain.wav',
+                objects: {
+                    'flower': 'Flor',
+                    'lightpost': 'Poste de Luz',
+                    'butterfly': 'Mariposa',
+                    'cube_city': 'Cubo',
+                    'bottle': 'Botella',
+                    'coin': 'Moneda',
+                    'bird': 'Pájaro',
+                    'bow_city': 'Moño de cabello',
+                    'flags': 'Banderin'
+                }
+            }
+        });
     });
 
     socket.on('new.game', () => {

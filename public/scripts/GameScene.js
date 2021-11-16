@@ -5,6 +5,7 @@ class GameScene extends Phaser.Scene {
         this.alertBgGroup;
         this.settingsGroup;
         this.bg_items = '';
+        this.bg_image;
         this.left_player_bg;
         this.right_player_bg;
         this.gameId = '...loading';
@@ -17,7 +18,7 @@ class GameScene extends Phaser.Scene {
         this.cooldownText2;
         this.cooldownBg;
         this.wrongEvents = [];
-        this.total_objects = Object.keys(hidden_objects).length;
+        this.total_objects = 0;
         this.total_found = 0;
         this.socket;
         this.backgroundMusicPlaying = true;
@@ -47,18 +48,78 @@ class GameScene extends Phaser.Scene {
     }
 
     preload() {
+        var that = this;
+        this.socket = io.connect(url, { query: { 'player': 'requesting' } });
+
+        this.socket.emit('request.game', {
+            gameId: 'retro'
+        });
+
+        this.socket.on('get.game', function (data) {
+            console.log('game data retrieved!!!');
+            console.log(data);
+            console.log(data.gameData);
+            console.log(data.gameData.bgMusic);
+            console.log(data.gameData.bgImg);
+            // console.log('assets/bg/' + data.gameData.bgImg);
+            // console.log(`trying to load ${data.gameData.bgMusic}`);
+
+            that.load.image('background', 'assets/bg/' + data.gameData.bgImg);
+
+            that.load.audio('bg_music', [`assets/audio/${data.gameData.bgMusic}`]);
+            // loading objects
+            for (var objectImage in data.gameData.objects) {
+                hidden_objects[objectImage] = {
+                    id: objectImage,
+                    name: data.gameData.objects[objectImage],
+                    found: false
+                }
+                console.log(`${objectImage} loaded!`);
+                that.load.image(objectImage, `assets/objects/${objectImage}.png`);
+            }
+
+            that.hidden_objects = hidden_objects;
+            that.total_objects = Object.keys(hidden_objects).length;
+
+            that.load.once('complete', () => {
+                // texture loaded so use instead of the placeholder
+                // card.setTexture(cardName)
+                console.log('audio and crap loaded!!');
+                // loading background image
+                that.bg_image.setTexture('background');
+
+                // loading background music
+                that.sndBackground = that.sound.add('bg_music', { volume: 0.7 });
+                that.sndBackground.loop = true;
+                that.sndBackground.play();
+
+                // adding objects to find
+                for (var ho in hidden_objects) {
+                    var x = Phaser.Math.Between(10, GAME_WIDTH - 100);
+                    var y = Phaser.Math.Between(10, WIN_HEIGHT - 100);
+                    var one_object = that.add.image(x, y, ho);
+
+                    one_object.name = ho;
+                    one_object.setInteractive();
+                    one_object.on('clicked', clickHandler, that);
+                }
+                that.renderGameObjects();
+            });
+            that.load.start();
+        });
+
         // images
         // this.load.image('background', 'assets/bg/kawaii.png'); // otoño
         // this.load.image('background', 'assets/bg/classroom.png'); // salon de clases
         // this.load.image('background', 'assets/bg/treasure.png'); // tesoros
         // this.load.image('background', 'assets/bg/chalkboard.png'); // chalkboard
         // this.load.image('background', 'assets/bg/city.png'); // ciudad
-        this.load.image('background', 'assets/bg/retro.png'); // retro
+        // this.load.image('background', 'assets/bg/retro.png'); // retro
         this.load.image('wrong', 'assets/red-cross-icon-png.png');
         this.load.image('cursor', 'assets/cursor.png');
-        for (var one in hidden_objects) {
-            this.load.image(hidden_objects[one].id, `assets/objects/${hidden_objects[one].id}.png`);
-        }
+        // for (var one in hidden_objects) {
+        //     this.load.image(hidden_objects[one].id, `assets/objects/${hidden_objects[one].id}.png`);
+        // }
         this.load.image('text_bg', 'assets/bg/bg.png');
         this.load.image('panel', 'assets/bg_panel_blue.png');
         this.load.image('button', 'assets/button_blue.png');
@@ -72,13 +133,11 @@ class GameScene extends Phaser.Scene {
         this.load.audio('correctChoice', ['assets/audio/correct_choice.wav']);
         this.load.audio('youWon', ['assets/audio/game_over.wav']);
         this.load.audio('youLoose', ['assets/audio/sad_trombone.wav']);
-        this.load.audio('bg_music', ['assets/audio/steady_rain.wav']);
+        this.load.audio('bg_music', ['assets/audio/whitenoise.wav']);
     };
 
     create() {
         this.cameras.main.fadeIn(200, 0, 0, 0);
-
-        this.socket = io.connect(url, { query: { 'player': 'requesting' } });
 
         this.graphics = this.add.graphics({ lineStyle: { width: 10, color: 0xff0000 } });
         wrongChoices = this.add.group();
@@ -88,22 +147,22 @@ class GameScene extends Phaser.Scene {
         this.input.setDefaultCursor('pointer');
 
         var self = this;
-        var bg_image = this.add.image(500, 400, 'background');
-        bg_image.setInteractive();
-        bg_image.on('clicked', this.bg_click_listener, this);
+        this.bg_image = this.add.image(500, 400, 'background');
+        this.bg_image.setInteractive();
+        this.bg_image.on('clicked', this.bg_click_listener, this);
 
         this.cursors = this.input.keyboard.createCursorKeys();
 
         // adding objects to find
-        for (var ho in hidden_objects) {
-            var x = Phaser.Math.Between(10, GAME_WIDTH - 100);
-            var y = Phaser.Math.Between(10, WIN_HEIGHT - 100);
-            var one_object = this.add.image(x, y, ho);
+        // for (var ho in hidden_objects) {
+        //     var x = Phaser.Math.Between(10, GAME_WIDTH - 100);
+        //     var y = Phaser.Math.Between(10, WIN_HEIGHT - 100);
+        //     var one_object = this.add.image(x, y, ho);
 
-            one_object.name = ho;
-            one_object.setInteractive();
-            one_object.on('clicked', clickHandler, this);
-        }
+        //     one_object.name = ho;
+        //     one_object.setInteractive();
+        //     one_object.on('clicked', clickHandler, this);
+        // }
 
         this.input.on('gameobjectup', function (pointer, gameObject) {
             gameObject.emit('clicked', gameObject);
@@ -143,11 +202,13 @@ class GameScene extends Phaser.Scene {
 
         var line = 0;
         this.text_groups = this.physics.add.staticGroup();
+        /*
         for (var i in hidden_objects) {
             var the_text = this.add.text(1220, (50 * line++) + 30, hidden_objects[i].name, { fontSize: getFontSize(hidden_objects[i].name), fill: '#FFFFFF' });
             the_text.name = i;
             this.text_groups.add(the_text);
         }
+        */
 
         this.gameIdLabel = this.add.text(WIN_WIDTH - 100, 10, this.gameId, { fontSize: '10px', fill: '#bbbbbb' });
 
@@ -185,9 +246,9 @@ class GameScene extends Phaser.Scene {
         this.sndCorrectChoice = this.sound.add('correctChoice');
         this.sndYouWon = this.sound.add('youWon');
         this.sndYouLoose = this.sound.add('youLoose');
-        this.sndBackground = this.sound.add('bg_music', { volume: 0.7 });
-        this.sndBackground.loop = true;
-        this.sndBackground.play();
+        // this.sndBackground = this.sound.add('bg_music', { volume: 0.7 });
+        // this.sndBackground.loop = true;
+        // this.sndBackground.play();
     };
 
     update() {
@@ -232,6 +293,15 @@ class GameScene extends Phaser.Scene {
             this.redScoreText.setFill('#666666');
         } else {
             this.redScoreText.setFill(SECOND_PLAYER.color);
+        }
+    }
+
+    renderGameObjects() {
+        var line = 0;
+        for (var i in this.hidden_objects) {
+            var the_text = this.add.text(1220, (50 * line++) + 30, hidden_objects[i].name, { fontSize: getFontSize(hidden_objects[i].name), fill: '#FFFFFF' });
+            the_text.name = i;
+            this.text_groups.add(the_text);
         }
     }
 
@@ -498,6 +568,9 @@ class GameScene extends Phaser.Scene {
     }
 
     checkWiner(self) {
+        console.log('check winner!!');
+        console.log(`${this.total_objects} vs ${this.total_found}`);
+
         if (this.total_objects == this.total_found) {
 
             var theWinner = '';
@@ -909,7 +982,10 @@ hidden_objects = {
     }
 }
 
+hidden_objects = {};
+
 function clickHandler(the_image, self) {
+    console.log('click handler!!');
     if (this.cooldown || this.settingsVisible) {
         return;
     }
